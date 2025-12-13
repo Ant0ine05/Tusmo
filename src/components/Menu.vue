@@ -1,18 +1,21 @@
 <template>
   <div>
-    <img src="../assets/Logo_Original.png" alt=""  class="logo">    
+    <Logo size="small" class="logo" />    
     <div>
       <div class="button_grid">
-        <input type="button" value="Start Game" @click="">
-        <input type="button" value="Multiplayer"@click="">
-        <input type="button" value="Options">
+        <input type="button" value="Start Game" @click="router.push('/game')">
+        <input type="button" value="Multiplayer" @click="router.push('/multiplayer')">
+        <input type="button" value="Options" @click="router.push('/options')">
       </div>
     </div>
   </div>
 </template>
 <script setup>
 import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import Logo from './Logo.vue';
 
+const router = useRouter();
 
 onMounted(() => {
   console.log('HelloWorld component mounted');
@@ -20,9 +23,7 @@ onMounted(() => {
 </script>
 <style scoped>
 .logo {
-  width: 30%;
-  aspect-ratio: 20 / 9;
-  object-fit: cover;
+  
 }
 .hello-world {
   text-align: center;

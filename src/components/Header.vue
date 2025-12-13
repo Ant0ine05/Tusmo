@@ -1,17 +1,25 @@
 <template>
     <div>
         <div>
-            <img v-if="viewImage" src="../assets/Logo4.png" alt="" width="20%" height="20%">    
+            <Icon v-if="router.currentRoute.value.path !== '/'" icon="line-md:home" width="24" height="24" class="button" @click="router.replace('/')" />
+            <img v-if="viewImage" src="../assets/Logo4.png" alt="" width="20%" height="20%">
         </div>
         <div>
             <ul>
-                <li><input type="button" value="🔊" @click=""></li>
-                <li><input type="button" value="🌙 / ☀️"></li>
+                <li><Icon icon="line-md:volume-high-filled" width="24" height="24" class="button"/></li>
+                <li><Icon icon="line-md:sunny-filled-loop-to-moon-filled-alt-loop-transition" width="24" height="24" class="button" /></li>
             </ul>   
         </div>
     </div>
 </template>
 <script setup>  
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { Icon } from '@iconify/vue';
+const router = useRouter();
+
+onMounted(() => {
+});
 defineProps({
     viewImage: {
         type: Boolean,
@@ -24,7 +32,7 @@ defineProps({
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem 2rem;
+        padding: 1rem 2rem 0rem 2rem;
     }
     ul {
         list-style: none;
@@ -37,7 +45,7 @@ defineProps({
         text-decoration: none;
         color: inherit;
     }
-    input[type="button"] {
+    .button {
         padding: 0.75rem 1rem;
         border: 2px solid rgba(255, 255, 255, 0.1);
         border-radius: 10px;
@@ -58,7 +66,7 @@ defineProps({
     }
 
     /* Effet de brillance au survol */
-    input[type="button"]::before {
+    .button::before {
         content: '';
         position: absolute;
         top: 0;
@@ -69,7 +77,7 @@ defineProps({
         transition: left 0.5s;
     }
 
-    input[type="button"]:hover {
+    .button:hover {
         background: rgba(21, 101, 192, 0.4);
         border-color: rgba(255, 255, 255, 0.3);
         transform: translateY(-2px) scale(1.05);
@@ -78,11 +86,11 @@ defineProps({
             inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
-    input[type="button"]:hover::before {
+    .button:hover::before {
         left: 100%;
     }
 
-    input[type="button"]:active {
+    .button:active {
         transform: translateY(0) scale(0.95);
         box-shadow: 
             0 2px 8px rgba(21, 101, 192, 0.3),

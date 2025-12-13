@@ -1,17 +1,28 @@
 
-
-<template >
-  <div class="app-container" >
-     <Header :viewImage="viewImage" />
-     <HelloWorld @viewImage="viewImage = false" />
+<template>
+  <div class="app-container">
+    <Header :viewImage="false" />
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </div>
 </template>
+
 <script setup>
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import Header from './components/Header.vue';
-import HelloWorld from './components/HelloWorld.vue'
-import { ref } from 'vue';
+
+
 
 const viewImage = ref(true);
+const route = useRoute();
+
+watch(() => route.path, (newPath) => {
+  viewImage.value = newPath === '/';
+});
 </script>
 <style>
 :root {
@@ -97,5 +108,17 @@ const viewImage = ref(true);
 #app {
     min-height: 100vh;
     background: transparent;
+}
+
+/* Début et Fin de l'animation */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+/* État invisible */
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
