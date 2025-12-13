@@ -115,7 +115,7 @@ const validateGuess = () => {
 
 const loadWords = async () => {
   try {
-    const response = await fetch('/mots-francais.txt');
+    const response = await fetch('/mots.txt');
 
     if (!response.ok) {
       throw new Error(`Fichier non trouvé: ${response.status}`);
