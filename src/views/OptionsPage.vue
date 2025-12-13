@@ -2,7 +2,7 @@
   <div class="construction-wrapper">
     <div class="card">
       <div class="icon-container">
-        <span class="icon">🚧</span>
+        <span class="icon"><Icon icon="line-md:alert-square-twotone-loop" width="40" height="40" /></span>
       </div>
 
       <h1>Page en construction</h1>
@@ -25,7 +25,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-
+import { Icon } from '@iconify/vue';
 const router = useRouter();
 
 const goHome = () => {
@@ -61,6 +61,7 @@ const goHome = () => {
 }
 
 .icon {
+    color: #ffbd00;
   font-size: 4rem;
   display: inline-block;
   animation: bounce 2s infinite;
