@@ -1,7 +1,6 @@
 <script setup>
-import { defineProps, onMounted, computed } from 'vue';
+import { defineProps, computed } from 'vue';
 
-// On reçoit les infos du parent (GameView)
 const props = defineProps({
   guesses: {
     type: Array,
@@ -21,17 +20,18 @@ const props = defineProps({
   }
 });
 
-// Calculer les lettres bien placées (correctes) déjà trouvées
+// --- LOGIQUE 1 : CALCULER LES LETTRES DÉCOUVERTES (Pour les indices) ---
 const revealedLetters = computed(() => {
+  if (!props.targetWord) return [];
+  
   const revealed = Array(props.targetWord.length).fill(null);
   
-  // La première lettre est toujours révélée
+  // La première lettre est toujours révélée (Règle Tusmo)
   revealed[0] = props.targetWord[0];
   
-  // Parcourir tous les essais précédents
+  // On regarde tous les essais précédents pour compléter les indices
   props.guesses.forEach(guess => {
     for (let i = 0; i < guess.length; i++) {
-      // Si la lettre est bien placée, on la révèle
       if (guess[i] === props.targetWord[i]) {
         revealed[i] = props.targetWord[i];
       }
@@ -41,44 +41,77 @@ const revealedLetters = computed(() => {
   return revealed;
 });
 
-onMounted(() => {
-  console.log("GameGrid monté avec le mot cible :", props.targetWord);
-});
+// --- LOGIQUE 2 : L'ALGORITHME DES COULEURS (LE FIX DU BUG) ---
+// C'est cette fonction qui gère intelligemment les doublons
+const getGuessStatuses = (guess, target) => {
+    const guessArr = guess.split('');
+    const targetArr = target.split('');
+    
+    // Par défaut, tout est "absent" (bleu/gris)
+    const result = new Array(guess.length).fill('absent'); 
+    
+    // On compte les lettres du mot cible (Ex: POMME -> {P:1, O:1, M:2, E:1})
+    const targetCounts = {};
+    for (const char of targetArr) {
+        targetCounts[char] = (targetCounts[char] || 0) + 1;
+    }
 
-const getStatusClass = (word, letter, index) => {
+    // PASSE 1 : Les Bien Placés (Rouge) - PRIORITAIRE
+    guessArr.forEach((letter, i) => {
+        if (letter === targetArr[i]) {
+            result[i] = 'correct';
+            targetCounts[letter]--; // On consomme la lettre
+        }
+    });
+
+    // PASSE 2 : Les Mal Placés (Jaune)
+    guessArr.forEach((letter, i) => {
+        // On ne touche pas à ceux qui sont déjà rouges
+        if (result[i] !== 'correct') { 
+            // S'il reste cette lettre dans le stock
+            if (targetCounts[letter] > 0) {
+                result[i] = 'present';
+                targetCounts[letter]--; // On consomme la lettre
+            }
+        }
+    });
+
+    return result;
+};
+
+// Fonction utilisée par le Template pour récupérer la couleur d'une case précise
+const getCellClass = (rowIndex, colIndex) => {
+  const word = props.guesses[rowIndex];
   if (!word) return '';
   
-  const target = props.targetWord;
+  // On calcule les couleurs pour tout le mot de cette ligne
+  const statuses = getGuessStatuses(word, props.targetWord);
   
-  if (target[index] === letter) return 'correct';
-  if (target.includes(letter)) return 'present';
-  
-  return 'absent';
+  // On retourne la couleur de la colonne demandée
+  return statuses[colIndex];
 };
 </script>
 
 <template>
   <div class="grid-container">
     
-    <div v-if="targetWord !== ''"
+    <div v-if="targetWord"
       v-for="(row, rowIndex) in maxAttempts" 
       :key="rowIndex" 
       class="row"
     >
       
-      <!-- Ligne déjà validée -->
       <template v-if="rowIndex < guesses.length">
         <div 
           v-for="(letter, colIndex) in props.targetWord.length" 
           :key="colIndex"
           class="cell revealed"
-          :class="getStatusClass(guesses[rowIndex], guesses[rowIndex][colIndex], colIndex)"
+          :class="getCellClass(rowIndex, colIndex)"
         >
           {{ guesses[rowIndex][colIndex] }}
         </div>
       </template>
 
-      <!-- Ligne en cours de saisie -->
       <template v-else-if="rowIndex === guesses.length">
         <div 
           v-for="(letter, colIndex) in props.targetWord.length" 
@@ -89,7 +122,6 @@ const getStatusClass = (word, letter, index) => {
           <span v-if="colIndex < currentGuess.length">
             {{ currentGuess[colIndex] }}
           </span>
-          <!-- Afficher les lettres révélées (bien placées) -->
           <span v-else-if="revealedLetters[colIndex]" class="hint">
             {{ revealedLetters[colIndex] }}
           </span>
@@ -97,14 +129,12 @@ const getStatusClass = (word, letter, index) => {
         </div>
       </template>
 
-      <!-- Lignes vides futures -->
       <template v-else>
         <div 
           v-for="(letter, colIndex) in targetWord.length" 
           :key="colIndex"
           class="cell empty"
         >
-          <!-- Afficher les lettres révélées même sur les lignes futures -->
           <span v-if="revealedLetters[colIndex]" class="hint opacity-50">
             {{ revealedLetters[colIndex] }}
           </span>
@@ -113,31 +143,39 @@ const getStatusClass = (word, letter, index) => {
       </template>
 
     </div>
+    
+    <div v-else class="loading">
+       Chargement du dictionnaire...
+    </div>
   </div>
 </template>
+
 <style scoped>
+/* --- TON STYLE ORIGINAL (Conservé) --- */
 .grid-container {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Espace entre les lignes */
+  gap: 10px;
   margin: 20px auto;
   padding: 20px;
-  max-width: 400px; /* Largeur max de la grille */
+  /* J'ai enlevé max-height fixe pour éviter que ça coupe sur mobile */
+  
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  width: fit-content; /* S'adapte au contenu */
 }
 
 .row {
   display: flex;
-  gap: 10px; /* Espace entre les lettres */
+  gap: 10px;
   justify-content: center;
 }
 
 .cell {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border: 3px solid rgba(255, 255, 255, 0.2);
   background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
   color: var(--color-text);
@@ -147,7 +185,7 @@ const getStatusClass = (word, letter, index) => {
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
-  border-radius: 8px; /* Un peu arrondi comme ton logo */
+  border-radius: 8px;
   user-select: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -155,14 +193,12 @@ const getStatusClass = (word, letter, index) => {
 
 /* --- ETATS DES CASES --- */
 
-/* Case remplie (en cours de frappe) */
 .cell.filled {
   border-color: rgba(255, 255, 255, 0.6);
   background: linear-gradient(145deg, rgba(21, 101, 192, 0.3), rgba(13, 71, 161, 0.5));
   transform: scale(1.05);
 }
 
-/* Case indice (Première lettre) */
 .hint {
   opacity: 0.5;
   color: rgba(255, 255, 255, 0.7);
@@ -173,26 +209,30 @@ const getStatusClass = (word, letter, index) => {
   color: rgba(255, 255, 255, 0.3);
 }
 
-/* --- COULEURS VALIDATION (TES VARIABLES) --- */
+/* --- COULEURS VALIDATION --- */
 
 .cell.correct {
+  /* ROUGE */
   background: linear-gradient(145deg, var(--color-correct), #B71C1C);
   border-color: var(--color-correct);
-  /* Effet néon subtil */
   box-shadow: 0 0 20px rgba(211, 47, 47, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4); 
   transform: scale(1.05);
+  z-index: 1; /* Pour passer au dessus */
 }
 
 .cell.present {
+  /* JAUNE */
   background: linear-gradient(145deg, var(--color-present), #F9A825);
   border-color: var(--color-present);
-  color: #1E293B;
+  color: #1E293B; /* Texte sombre sur jaune pour lisibilité */
   font-weight: 800;
   box-shadow: 0 0 20px rgba(251, 192, 45, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
   transform: scale(1.05);
+  z-index: 1;
 }
 
 .cell.absent {
+  /* BLEU/GRIS */
   background: linear-gradient(145deg, rgba(120, 144, 156, 0.6), rgba(96, 125, 139, 0.8));
   border-color: rgba(120, 144, 156, 0.4);
   opacity: 0.7;
@@ -200,12 +240,18 @@ const getStatusClass = (word, letter, index) => {
 
 /* Animation d'apparition */
 .revealed {
-  animation: flip 0.5s ease forwards;
+  animation: flip 0.6s ease forwards;
+}
+
+.loading {
+    color: white;
+    text-align: center;
+    padding: 20px;
 }
 
 @keyframes flip {
-  0% { transform: scaleY(1); }
-  50% { transform: scaleY(0); }
-  100% { transform: scaleY(1); }
+  0% { transform: rotateX(0); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
 }
 </style>

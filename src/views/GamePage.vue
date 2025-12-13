@@ -4,16 +4,23 @@
     <br>
     <GameGrid :targetWord="target" :guesses="guesses" :currentGuess="current" :maxAttempts="6" />
 
-    <div class="instructions">
-      <p>💡 Tapez directement sur votre clavier</p>
-      <p>⌫ Backspace pour effacer | ↵ Enter pour valider</p>
+    <Keyboard 
+      :guesses="guesses"
+      :targetWord="target"
+      @keyPress="handleKeyPress"
+      @enter="validateGuess"
+      @backspace="handleBackspace"
+    />
+    <div v-if="guesses.length == maxAttempts" class="instructions">
+      <p>Le mot était : <strong>{{ target }}</strong></p>
+      <p>Cliquez sur "Recharger" pour rejouer !</p>
     </div>
-
   </main>
 </template>
 
 <script setup>
 import GameGrid from '../components/GameGrid.vue';
+import Keyboard from '../components/Keyboard.vue';
 import Logo from '../components/Logo.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 
@@ -21,6 +28,18 @@ const target = ref("");
 const guesses = ref([]); // Deux essais simulés
 const current = ref(""); // L'essai en cours
 const wordList = ref([]);
+const maxAttempts = 6;
+
+const handleKeyPress = (key) => {
+  if (current.value.length < target.value.length) {
+    current.value += key;
+  }
+};
+
+const handleBackspace = () => {
+  current.value = current.value.slice(0, -1);
+};
+
 
 const validateGuess = () => {
   if (current.value.length === target.value.length) {
@@ -31,6 +50,7 @@ const validateGuess = () => {
       current.value = ""; // Réinitialiser l'essai en cours même si le mot n'est pas validefut
     }
   }
+  console.log("Essais actuels :", guesses.value);
 };
 
 const loadWords = async () => {
@@ -104,7 +124,7 @@ const handleKeydown = (event) => {
 onMounted(async () => {
   const words = await loadWords();
   target.value = words[Math.floor(Math.random() * words.length)];
-  // console.log("Mot cible :", target.value);
+  console.log("Mot cible :", target.value);
   window.addEventListener('keydown', handleKeydown);
 
 });
