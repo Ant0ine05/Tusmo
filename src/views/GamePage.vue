@@ -140,7 +140,7 @@ const loadWords = async () => {
         /^[A-Z]+$/.test(word)
       );
     wordList.value = words;
-    console.log("Exemples:", words.slice(0, 10));
+    // console.log("Exemples:", words.slice(0, 10));
 
     return words;
   } catch (error) {
@@ -155,7 +155,7 @@ const resetGame = async () => {
   gameStatus.value = 'playing';
   const words = wordList.value.length > 0 ? wordList.value : await loadWords();
   target.value = words[Math.floor(Math.random() * words.length)];
-  console.log("Nouveau mot :", target.value);
+  // console.log("Nouveau mot :", target.value);
 };
 
 const handleKeydown = (event) => {

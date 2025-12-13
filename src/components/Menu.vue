@@ -18,7 +18,7 @@ import Logo from './Logo.vue';
 const router = useRouter();
 
 onMounted(() => {
-  console.log('HelloWorld component mounted');
+  // console.log('HelloWorld component mounted');
 });
 </script>
 <style scoped>
