@@ -4,7 +4,7 @@
     <div>
       <div class="button_grid">
         <input type="button" value="Start Game" @click="router.push('/game')">
-        <input type="button" value="Multiplayer" @click="router.push('/multiplayer')">
+        <input type="button" value="Stats" @click="router.push('/multiplayer')">
         <input type="button" value="Options" @click="router.push('/options')">
       </div>
     </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, computed } from 'vue';
+import { defineProps, computed, defineEmits } from 'vue';
 
 const props = defineProps({
   guesses: {
@@ -20,16 +20,16 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['win', 'lose']);
+
 // --- LOGIQUE 1 : CALCULER LES LETTRES DÉCOUVERTES (Pour les indices) ---
 const revealedLetters = computed(() => {
   if (!props.targetWord) return [];
   
   const revealed = Array(props.targetWord.length).fill(null);
   
-  // La première lettre est toujours révélée (Règle Tusmo)
   revealed[0] = props.targetWord[0];
   
-  // On regarde tous les essais précédents pour compléter les indices
   props.guesses.forEach(guess => {
     for (let i = 0; i < guess.length; i++) {
       if (guess[i] === props.targetWord[i]) {
@@ -42,15 +42,12 @@ const revealedLetters = computed(() => {
 });
 
 // --- LOGIQUE 2 : L'ALGORITHME DES COULEURS (LE FIX DU BUG) ---
-// C'est cette fonction qui gère intelligemment les doublons
 const getGuessStatuses = (guess, target) => {
     const guessArr = guess.split('');
     const targetArr = target.split('');
     
-    // Par défaut, tout est "absent" (bleu/gris)
     const result = new Array(guess.length).fill('absent'); 
     
-    // On compte les lettres du mot cible (Ex: POMME -> {P:1, O:1, M:2, E:1})
     const targetCounts = {};
     for (const char of targetArr) {
         targetCounts[char] = (targetCounts[char] || 0) + 1;
@@ -60,18 +57,16 @@ const getGuessStatuses = (guess, target) => {
     guessArr.forEach((letter, i) => {
         if (letter === targetArr[i]) {
             result[i] = 'correct';
-            targetCounts[letter]--; // On consomme la lettre
+            targetCounts[letter]--;
         }
     });
 
     // PASSE 2 : Les Mal Placés (Jaune)
     guessArr.forEach((letter, i) => {
-        // On ne touche pas à ceux qui sont déjà rouges
         if (result[i] !== 'correct') { 
-            // S'il reste cette lettre dans le stock
             if (targetCounts[letter] > 0) {
                 result[i] = 'present';
-                targetCounts[letter]--; // On consomme la lettre
+                targetCounts[letter]--;
             }
         }
     });
@@ -79,15 +74,43 @@ const getGuessStatuses = (guess, target) => {
     return result;
 };
 
-// Fonction utilisée par le Template pour récupérer la couleur d'une case précise
+// --- LOGIQUE 3 : VÉRIFIER SI LE MOT EST CORRECT ---
+const checkWin = (guess) => {
+  return guess.toUpperCase() === props.targetWord.toUpperCase();
+};
+
+// Vérifier après chaque guess
+const checkGameStatus = () => {
+  if (props.guesses.length === 0) return;
+  
+  const lastGuess = props.guesses[props.guesses.length - 1];
+  
+  // Victoire : le dernier mot est correct
+  if (checkWin(lastGuess)) {
+    setTimeout(() => {
+      emit('win', props.guesses.length);
+    }, 600); // Attendre l'animation flip
+  }
+  // Défaite : nombre max d'essais atteint
+  else if (props.guesses.length >= props.maxAttempts) {
+    setTimeout(() => {
+      emit('lose', props.targetWord);
+    }, 600);
+  }
+};
+
+// Surveiller les changements de guesses
+import { watch } from 'vue';
+watch(() => props.guesses.length, () => {
+  checkGameStatus();
+});
+
 const getCellClass = (rowIndex, colIndex) => {
   const word = props.guesses[rowIndex];
   if (!word) return '';
   
-  // On calcule les couleurs pour tout le mot de cette ligne
   const statuses = getGuessStatuses(word, props.targetWord);
   
-  // On retourne la couleur de la colonne demandée
   return statuses[colIndex];
 };
 </script>

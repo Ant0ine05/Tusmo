@@ -5,19 +5,32 @@
             <img v-if="viewImage" src="../assets/Logo4.png" alt="" width="20%" height="20%">
         </div>
         <div>
-            <ul>
-                <li><Icon icon="line-md:volume-high-filled" width="24" height="24" class="button"/></li>
-                <li><Icon icon="line-md:sunny-filled-loop-to-moon-filled-alt-loop-transition" width="24" height="24" class="button" /></li>
-            </ul>   
+            <div>
+                <Icon v-if="playmusique" icon="mdi:music-note-off" width="24" height="24" class="button" @click="playMusique()" />
+                <Icon v-else icon="mdi:music-note" width="24" height="24" class="button" @click="playMusique()" />
+            </div>
+
         </div>
     </div>
 </template>
 <script setup>  
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
 const router = useRouter();
-
+const maMusique = new Audio('/sounds/Horizon_2.mp3');
+const playmusique = ref(true);
+const playMusique = () => {
+    console.log(maMusique.paused);
+    if (maMusique.paused) {
+        maMusique.play();
+        maMusique.loop = true;
+        playmusique.value = false;
+    } else {
+        maMusique.pause();
+        playmusique.value = true;
+    }
+}
 onMounted(() => {
 });
 defineProps({
@@ -32,14 +45,7 @@ defineProps({
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem 2rem 0rem 2rem;
-    }
-    ul {
-        list-style: none;
-        display: flex;
-        gap: 1rem;
-        padding: 0;
-        margin: 0;
+        padding: 0.5rem 2rem 0rem 2rem;
     }
     a {
         text-decoration: none;
