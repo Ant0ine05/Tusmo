@@ -60,7 +60,7 @@ const getStatusClass = (word, letter, index) => {
 <template>
   <div class="grid-container">
     
-    <div 
+    <div v-if="targetWord !== ''"
       v-for="(row, rowIndex) in maxAttempts" 
       :key="rowIndex" 
       class="row"

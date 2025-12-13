@@ -65,7 +65,7 @@ const loadWords = async () => {
         /^[A-Z]+$/.test(word) // VERIFIE qu'il ne reste que des lettres de A à Z (pas de tirets !)
       );
     wordList.value = words;
-    console.log("Mots de  lettres trouvés:", words.length);
+    // console.log("Mots de  lettres trouvés:", words.length);
     console.log("Exemples:", words.slice(0, 10));
 
     return words;
@@ -104,7 +104,7 @@ const handleKeydown = (event) => {
 onMounted(async () => {
   const words = await loadWords();
   target.value = words[Math.floor(Math.random() * words.length)];
-  console.log("Mot cible :", target.value);
+  // console.log("Mot cible :", target.value);
   window.addEventListener('keydown', handleKeydown);
 
 });
