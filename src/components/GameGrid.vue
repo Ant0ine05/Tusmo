@@ -1,39 +1,21 @@
 <script setup>
-import {  computed,  } from 'vue';
-
-const props = defineProps({
-  guesses: {
-    type: Array,
-    default: () => []
-  },
-  currentGuess: {
-    type: String,
-    default: ""
-  },
-  targetWord: {
-    type: String,
-    required: true
-  },
-  maxAttempts: {
-    type: Number,
-    default: 6
-  }
-});
+import { computed, watch } from 'vue';
+import { store } from '../store/store.ts';
 
 const emit = defineEmits(['win', 'lose']);
 
 // --- LOGIQUE 1 : CALCULER LES LETTRES DÉCOUVERTES (Pour les indices) ---
 const revealedLetters = computed(() => {
-  if (!props.targetWord) return [];
+  if (!store.target) return [];
   
-  const revealed = Array(props.targetWord.length).fill(null);
+  const revealed = Array(store.target.length).fill(null);
   
-  revealed[0] = props.targetWord[0];
+  revealed[0] = store.target[0];
   
-  props.guesses.forEach(guess => {
+  store.guesses.forEach(guess => {
     for (let i = 0; i < guess.length; i++) {
-      if (guess[i] === props.targetWord[i]) {
-        revealed[i] = props.targetWord[i];
+      if (guess[i] === store.target[i]) {
+        revealed[i] = store.target[i];
       }
     }
   });
@@ -76,40 +58,39 @@ const getGuessStatuses = (guess, target) => {
 
 // --- LOGIQUE 3 : VÉRIFIER SI LE MOT EST CORRECT ---
 const checkWin = (guess) => {
-  return guess.toUpperCase() === props.targetWord.toUpperCase();
+  return guess.toUpperCase() === store.target.toUpperCase();
 };
 
 // Vérifier après chaque guess
 const checkGameStatus = () => {
-  if (props.guesses.length === 0) return;
+  if (store.guesses.length === 0) return;
   
-  const lastGuess = props.guesses[props.guesses.length - 1];
+  const lastGuess = store.guesses[store.guesses.length - 1];
   
   // Victoire : le dernier mot est correct
   if (checkWin(lastGuess)) {
     setTimeout(() => {
-      emit('win', props.guesses.length);
+      emit('win', store.guesses.length);
     }, 600); // Attendre l'animation flip
   }
   // Défaite : nombre max d'essais atteint
-  else if (props.guesses.length >= props.maxAttempts) {
+  else if (store.guesses.length >= store.maxAttempts) {
     setTimeout(() => {
-      emit('lose', props.targetWord);
+      emit('lose', store.target);
     }, 600);
   }
 };
 
 // Surveiller les changements de guesses
-import { watch } from 'vue';
-watch(() => props.guesses.length, () => {
+watch(() => store.guesses.length, () => {
   checkGameStatus();
 });
 
 const getCellClass = (rowIndex, colIndex) => {
-  const word = props.guesses[rowIndex];
+  const word = store.guesses[rowIndex];
   if (!word) return '';
   
-  const statuses = getGuessStatuses(word, props.targetWord);
+  const statuses = getGuessStatuses(word, store.target);
   
   return statuses[colIndex];
 };
@@ -118,32 +99,32 @@ const getCellClass = (rowIndex, colIndex) => {
 <template>
   <div class="grid-container">
     
-    <div v-if="targetWord"
-      v-for="(row, rowIndex) in maxAttempts" 
+    <div v-if="store.target"
+      v-for="(row, rowIndex) in store.maxAttempts" 
       :key="rowIndex" 
       class="row"
     >
       
-      <template v-if="rowIndex < guesses.length">
+      <template v-if="rowIndex < store.guesses.length">
         <div 
-          v-for="(letter, colIndex) in props.targetWord.length" 
+          v-for="(letter, colIndex) in store.target.length" 
           :key="colIndex"
           class="cell revealed"
           :class="getCellClass(rowIndex, colIndex)"
         >
-          {{ guesses[rowIndex][colIndex] }}
+          {{ store.guesses[rowIndex][colIndex] }}
         </div>
       </template>
 
-      <template v-else-if="rowIndex === guesses.length">
+      <template v-else-if="rowIndex === store.guesses.length">
         <div 
-          v-for="(letter, colIndex) in props.targetWord.length" 
+          v-for="(letter, colIndex) in store.target.length" 
           :key="colIndex"
           class="cell current"
-          :class="{ 'filled': colIndex < currentGuess.length }"
+          :class="{ 'filled': colIndex < store.current.length }"
         >
-          <span v-if="colIndex < currentGuess.length">
-            {{ currentGuess[colIndex] }}
+          <span v-if="colIndex < store.current.length">
+            {{ store.current[colIndex] }}
           </span>
           <span v-else-if="revealedLetters[colIndex]" class="hint">
             {{ revealedLetters[colIndex] }}
@@ -154,7 +135,7 @@ const getCellClass = (rowIndex, colIndex) => {
 
       <template v-else>
         <div 
-          v-for="(letter, colIndex) in targetWord.length" 
+          v-for="(letter, colIndex) in store.target.length" 
           :key="colIndex"
           class="cell empty"
         >

@@ -6,7 +6,7 @@
         v-for="key in row1" 
         :key="key"
         :class="['key', getKeyStatus(key)]"
-        @click="$emit('keyPress', key)"
+        @click="store.handleKeyPress(key)"
       >
         {{ key }}
       </button>
@@ -18,7 +18,7 @@
         v-for="key in row2" 
         :key="key"
         :class="['key', getKeyStatus(key)]"
-        @click="$emit('keyPress', key)"
+        @click="store.handleKeyPress(key)"
       >
         {{ key }}
       </button>
@@ -26,18 +26,18 @@
 
     <!-- Ligne 3 : W-? avec Entrée et Backspace -->
     <div class="keyboard-row">
-      <button class="key key-action" @click="$emit('enter')">
+      <button class="key key-action" @click="store.validateGuess()">
         ↵ ENTER
       </button>
       <button 
         v-for="key in row3" 
         :key="key"
         :class="['key', getKeyStatus(key)]"
-        @click="$emit('keyPress', key)"
+        @click="store.handleKeyPress(key)"
       >
         {{ key }}
       </button>
-      <button class="key key-action" @click="$emit('backspace')">
+      <button class="key key-action" @click="store.handleBackspace()">
         ⌫
       </button>
     </div>
@@ -45,20 +45,8 @@
 </template>
 
 <script setup>
-import {computed} from 'vue';
-
-const props = defineProps({
-  guesses: {
-    type: Array,
-    default: () => []
-  },
-  targetWord: {
-    type: String,
-    required: true
-  }
-});
-
-defineEmits(['keyPress', 'enter', 'backspace']);
+import { computed } from 'vue';
+import { store } from '../store/store.ts';
 
 // Disposition AZERTY
 const row1 = ['A', 'Z', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
@@ -69,20 +57,20 @@ const row3 = ['W', 'X', 'C', 'V', 'B', 'N'];
 const letterStatus = computed(() => {
   const status = {};
   
-  props.guesses.forEach(guess => {
+  store.guesses.forEach(guess => {
     for (let i = 0; i < guess.length; i++) {
       const letter = guess[i];
       
       // Si bien placée → correct (priorité max)
-      if (props.targetWord[i] === letter) {
+      if (store.target[i] === letter) {
         status[letter] = 'correct';
       }
       // Si présente mais mal placée → present (seulement si pas déjà correct)
-      else if (props.targetWord.includes(letter) && status[letter] !== 'correct') {
+      else if (store.target.includes(letter) && status[letter] !== 'correct') {
         status[letter] = 'present';
       }
       // Si absente → absent (seulement si pas déjà correct ou present)
-      else if (!props.targetWord.includes(letter) && !status[letter]) {
+      else if (!store.target.includes(letter) && !status[letter]) {
         status[letter] = 'absent';
       }
     }

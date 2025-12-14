@@ -1,20 +1,19 @@
 <template>
   <main>
     <Logo size="small" class="logo" />
-    <br>
-    
+    <br> 
     <!-- Modal Victoire/Défaite -->
-    <div v-if="gameStatus !== 'playing'" class="modal-overlay" @click="closeModal">
+    <div v-if="store.gameStatus !== 'playing'" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         
         <!-- Victoire -->
-        <div v-if="gameStatus === 'won'" class="modal-win">
+        <div v-if="store.gameStatus === 'won'" class="modal-win">
           <div class="modal-icon"><Icon icon="mdi:party-popper" width="48" height="48" /></div>
           <h2>BRAVO !</h2>
-          <p>Tu as trouvé le mot en <strong>{{ guesses.length }}</strong> essai{{ guesses.length > 1 ? 's' : '' }} !</p>
-          <div class="modal-word">{{ target }}</div>
+          <p>Tu as trouvé le mot en <strong>{{ store.guesses.length }}</strong> essai{{ store.guesses.length > 1 ? 's' : '' }} !</p>
+          <div class="modal-word">{{ store.target }}</div>
           <div class="modal-actions">
-            <button @click="resetGame" class="btn-restart primary">
+            <button @click="store.resetGame()" class="btn-restart primary">
              <Icon icon="mdi:restart" width="24" height="24" /> Rejouer
             </button>
             <button @click="$router.replace('/')" class="btn-restart secondary">
@@ -24,13 +23,13 @@
         </div>
 
         <!-- Défaite -->
-        <div v-else-if="gameStatus === 'lost'" class="modal-lose">
+        <div v-else-if="store.gameStatus === 'lost'" class="modal-lose">
           <!-- <div class="modal-icon"><Icon icon="mdi:close-circle" width="48" height="48" /></div> -->
           <h2>PERDU !</h2>
           <p>Le mot était :</p>
-          <div class="modal-word">{{ target }}</div>
+          <div class="modal-word">{{ store.target }}</div>
           <div class="modal-actions">
-            <button @click="resetGame" class="btn-restart primary">
+            <button @click="store.resetGame()" class="btn-restart primary">
               <Icon icon="mdi:restart" width="24" height="24" /> Réessayer
             </button>
             <button @click="$router.replace('/')" class="btn-restart secondary">
@@ -41,23 +40,11 @@
 
       </div>
     </div>
-
     <GameGrid 
-      :guesses="guesses" 
-      :currentGuess="current" 
-      :targetWord="target"
-      :maxAttempts="6"
-      @win="handleWin"
-      @lose="handleLose"
+      @win="store.handleWin"
+      @lose="store.handleLose"
     />
-
-    <Keyboard 
-      :guesses="guesses"
-      :targetWord="target"
-      @keyPress="handleKeyPress"
-      @enter="validateGuess"
-      @backspace="handleBackspace"
-    />
+    <Keyboard />
   </main>
 </template>
 
@@ -66,140 +53,20 @@ import { Icon } from '@iconify/vue';
 import GameGrid from '../components/GameGrid.vue';
 import Keyboard from '../components/Keyboard.vue';
 import Logo from '../components/Logo.vue';
-import { ref, onMounted, onUnmounted } from 'vue';
-
-const target = ref("");
-const guesses = ref([]);
-const current = ref("");
-const wordList = ref([]);
-const maxAttempts = 6;
-const gameStatus = ref('playing');
-
-const handleWin = (attempts) => {
-  gameStatus.value = 'won';
-  console.log(`🎉 Victoire en ${attempts} essais !`);
-};
-
-const handleLose = (word) => {
-  gameStatus.value = 'lost';
-  console.log(`😢 Défaite ! Le mot était : ${word}`);
-};
+import { onMounted, onUnmounted } from 'vue';
+import { store } from '../store/store.ts';
 
 const closeModal = () => {
   // Optionnel : fermer la modal en cliquant sur l'overlay
 };
 
-const handleKeyPress = (key) => {
-  if (gameStatus.value !== 'playing') return;
-  
-  // Si current est vide, ajouter automatiquement la première lettre
-  if (current.value.length === 0) {
-    current.value = target.value[0];
-  }
-  
-  // Ajouter la lettre si on n'a pas atteint la longueur max
-  if (current.value.length < target.value.length) {
-    current.value += key;
-  }
-};
-
-const handleBackspace = () => {
-  if (gameStatus.value !== 'playing') return;
-  
-  // Empêcher de supprimer la première lettre (toujours garder au moins 1 lettre)
-  if (current.value.length > 1) {
-    current.value = current.value.slice(0, -1);
-  }
-};
-
-const validateGuess = () => {
-  if (gameStatus.value !== 'playing') return;
-  if (current.value.length === target.value.length) {
-    if (wordList.value.includes(current.value)) {
-      guesses.value.push(current.value);
-      current.value = target.value[0]; // Réinitialiser avec la première lettre
-    } else {
-      current.value = target.value[0]; // Réinitialiser avec la première lettre même si invalide
-    }
-  }
-};
-
-const loadWords = async () => {
-  try {
-    const response = await fetch('/mots.txt');
-
-    if (!response.ok) {
-      throw new Error(`Fichier non trouvé: ${response.status}`);
-    }
-
-    const text = await response.text();
-
-    const words = text
-      .split('\n')
-      .map(line => {
-        return line
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/œ/g, "OE")
-          .replace(/Œ/g, "OE")
-          .trim()
-          .toUpperCase();
-      })
-      .filter(word =>
-        word.length >= 5 &&
-        word.length <= 8 &&
-        /^[A-Z]+$/.test(word)
-      );
-    wordList.value = words;
-    // console.log("Exemples:", words.slice(0, 10));
-
-    return words;
-  } catch (error) {
-    console.error("Erreur chargement mots:", error);
-    return ['TUSMO', 'TABLE', 'ROUGE', 'BLOND', 'CARTE', 'MONDE', 'TEMPS', 'GARDE'];
-  }
-};
-
-const resetGame = async () => {
-  guesses.value = [];
-  gameStatus.value = 'playing';
-  const words = wordList.value.length > 0 ? wordList.value : await loadWords();
-  target.value = words[Math.floor(Math.random() * words.length)];
-  current.value = target.value[0]; // Initialiser avec la première lettre
-  // console.log("Nouveau mot :", target.value);
-};
-
-const handleKeydown = (event) => {
-  if (!target.value || gameStatus.value !== 'playing') return;
-
-  const key = event.key.toUpperCase();
-
-  if (/^[A-Z]$/.test(key) && current.value.length < target.value.length) {
-    current.value += key;
-    event.preventDefault();
-  }
-  else if (event.key === 'Backspace') {
-    // Empêcher de supprimer la première lettre
-    if (current.value.length > 1) {
-      current.value = current.value.slice(0, -1);
-    }
-    event.preventDefault();
-  }
-  else if (event.key === 'Enter') {
-    validateGuess();
-    event.preventDefault();
-  }
-};
-
 onMounted(async () => {
-  const words = await loadWords();
-  target.value = words[Math.floor(Math.random() * words.length)];
-  current.value = target.value[0]; // Initialiser avec la première lettre dès le début
-  window.addEventListener('keydown', handleKeydown);
+  await store.initGame();
+  window.addEventListener('keydown', store.handleKeydown);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
+  window.removeEventListener('keydown', store.handleKeydown);
 });
 </script>
 
