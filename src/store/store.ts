@@ -12,7 +12,7 @@ export const store = reactive({
     // Actions
     setTarget(word) {
         this.target = word
-        console.log("Mot cible défini sur :", word);
+        // console.log("Mot cible défini sur :", word);
         this.current = this.target[0];
 
     },
