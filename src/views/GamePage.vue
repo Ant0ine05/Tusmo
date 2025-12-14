@@ -91,6 +91,13 @@ const closeModal = () => {
 
 const handleKeyPress = (key) => {
   if (gameStatus.value !== 'playing') return;
+  
+  // Si current est vide, ajouter automatiquement la première lettre
+  if (current.value.length === 0) {
+    current.value = target.value[0];
+  }
+  
+  // Ajouter la lettre si on n'a pas atteint la longueur max
   if (current.value.length < target.value.length) {
     current.value += key;
   }
@@ -98,7 +105,11 @@ const handleKeyPress = (key) => {
 
 const handleBackspace = () => {
   if (gameStatus.value !== 'playing') return;
-  current.value = current.value.slice(0, -1);
+  
+  // Empêcher de supprimer la première lettre (toujours garder au moins 1 lettre)
+  if (current.value.length > 1) {
+    current.value = current.value.slice(0, -1);
+  }
 };
 
 const validateGuess = () => {
@@ -106,9 +117,9 @@ const validateGuess = () => {
   if (current.value.length === target.value.length) {
     if (wordList.value.includes(current.value)) {
       guesses.value.push(current.value);
-      current.value = "";
+      current.value = target.value[0]; // Réinitialiser avec la première lettre
     } else {
-      current.value = "";
+      current.value = target.value[0]; // Réinitialiser avec la première lettre même si invalide
     }
   }
 };
@@ -151,10 +162,10 @@ const loadWords = async () => {
 
 const resetGame = async () => {
   guesses.value = [];
-  current.value = "";
   gameStatus.value = 'playing';
   const words = wordList.value.length > 0 ? wordList.value : await loadWords();
   target.value = words[Math.floor(Math.random() * words.length)];
+  current.value = target.value[0]; // Initialiser avec la première lettre
   // console.log("Nouveau mot :", target.value);
 };
 
@@ -168,7 +179,10 @@ const handleKeydown = (event) => {
     event.preventDefault();
   }
   else if (event.key === 'Backspace') {
-    current.value = current.value.slice(0, -1);
+    // Empêcher de supprimer la première lettre
+    if (current.value.length > 1) {
+      current.value = current.value.slice(0, -1);
+    }
     event.preventDefault();
   }
   else if (event.key === 'Enter') {
@@ -180,6 +194,7 @@ const handleKeydown = (event) => {
 onMounted(async () => {
   const words = await loadWords();
   target.value = words[Math.floor(Math.random() * words.length)];
+  current.value = target.value[0]; // Initialiser avec la première lettre dès le début
   window.addEventListener('keydown', handleKeydown);
 });
 
@@ -337,7 +352,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0rem 1rem 0 1rem;
+  padding: 0.5rem 1rem 0 1rem;
   min-height: calc(100vh - 100px);
 }
 
@@ -410,5 +425,33 @@ h1 {
 .input-test button:hover {
   background: rgba(21, 101, 192, 0.5);
   transform: scale(1.05);
+}
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 2.5rem 2rem;
+  }
+
+  .modal-word {
+    font-size: 2rem;
+    letter-spacing: 6px;
+    padding: 0.8rem 1.5rem;
+  }
+  main{
+    padding: 1rem 0.5rem 0 0.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .modal-word {
+    font-size: 2rem;
+    letter-spacing: 6px;
+    padding: 0.8rem 1.5rem;
+  }
+  main{
+    padding: 1rem 0.5rem 0 0.5rem;
+  }
 }
 </style>

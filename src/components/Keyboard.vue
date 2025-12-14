@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import {computed} from 'vue';
 
 const props = defineProps({
   guesses: {
@@ -166,5 +166,86 @@ const getKeyStatus = (key) => {
   border-color: rgba(120, 144, 156, 0.3);
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* === RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+  .keyboard {
+    gap: 6px;
+    margin: 15px auto;
+    padding: 15px;
+    max-width: 550px;
+    border-radius: 12px;
+  }
+  
+  .keyboard-row {
+    gap: 5px;
+  }
+  
+  .key {
+    min-width: 40px;
+    height: 48px;
+    padding: 0 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+  }
+  
+  .key-action {
+    min-width: 65px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .keyboard {
+    gap: 4px;
+    margin: 10px auto;
+    padding: 10px;
+    max-width: 100%;
+    border-radius: 10px;
+  }
+  
+  .keyboard-row {
+    gap: 3px;
+  }
+  
+  .key {
+    min-width: 28px;
+    height: 40px;
+    padding: 0 6px;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .key-action {
+    min-width: 50px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .keyboard {
+    gap: 3px;
+    margin: 8px auto;
+    padding: 8px;
+  }
+  
+  .keyboard-row {
+    gap: 2px;
+  }
+  
+  .key {
+    min-width: 24px;
+    height: 35px;
+    padding: 0 4px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+  }
+  
+  .key-action {
+    min-width: 42px;
+    font-size: 0.65rem;
+  }
 }
 </style>

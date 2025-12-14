@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, computed, defineEmits } from 'vue';
+import {  computed,  } from 'vue';
 
 const props = defineProps({
   guesses: {
@@ -181,13 +181,11 @@ const getCellClass = (rowIndex, colIndex) => {
   gap: 10px;
   margin: 20px auto;
   padding: 20px;
-  /* J'ai enlevé max-height fixe pour éviter que ça coupe sur mobile */
-  
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  width: fit-content; /* S'adapte au contenu */
+  width: fit-content;
 }
 
 .row {
@@ -212,6 +210,68 @@ const getCellClass = (rowIndex, colIndex) => {
   user-select: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* === RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+  .grid-container {
+    gap: 6px;
+    margin: 10px auto;
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .row {
+    gap: 6px;
+  }
+  
+  .cell {
+    width: 45px;
+    height: 45px;
+    font-size: 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-container {
+    gap: 4px;
+    margin: 8px auto;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  
+  .row {
+    gap: 4px;
+  }
+  
+  .cell {
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+  }
+}
+
+@media (max-width: 430px) {
+  .grid-container {
+    gap: 3px;
+    margin: 5px auto;
+    padding: 8px;
+  }
+  
+  .row {
+    gap: 3px;
+  }
+  
+  .cell {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
 }
 
 /* --- ETATS DES CASES --- */

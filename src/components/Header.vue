@@ -2,7 +2,6 @@
     <div>
         <div>
             <Icon v-if="router.currentRoute.value.path !== '/'" icon="line-md:home" width="24" height="24" class="button" @click="router.replace('/')" />
-            <img v-if="viewImage" src="../assets/Logo4.png" alt="" width="20%" height="20%">
         </div>
         <div>
             <div>
@@ -33,12 +32,7 @@ const playMusique = () => {
 }
 onMounted(() => {
 });
-defineProps({
-    viewImage: {
-        type: Boolean,
-        default: true
-    }
-})
+
 </script>
 <style scoped>
     div {
@@ -102,4 +96,57 @@ defineProps({
             0 2px 8px rgba(21, 101, 192, 0.3),
             inset 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+
+/* === RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+    div {
+        padding: 0.4rem 1.5rem 0rem 1.5rem;
+    }
+    
+    .button {
+        padding: 0.6rem 0.8rem;
+        font-size: 1.3rem;
+        min-width: 45px;
+        border-radius: 8px;
+    }
+    
+    img {
+        max-width: 25%;
+    }
+}
+
+@media (max-width: 480px) {
+    div {
+        padding: 0.3rem 1rem 0rem 1rem;
+    }
+    
+    .button {
+        padding: 0.5rem 0.6rem;
+        font-size: 1.1rem;
+        min-width: 40px;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    img {
+        max-width: 30%;
+    }
+}
+
+@media (max-width: 360px) {
+    div {
+        padding: 0.25rem 0.75rem 0rem 0.75rem;
+    }
+    
+    .button {
+        padding: 0.4rem 0.5rem;
+        font-size: 1rem;
+        min-width: 35px;
+        border-radius: 6px;
+    }
+    
+    img {
+        max-width: 35%;
+    }
+}
 </style>
