@@ -1,5 +1,31 @@
 import { reactive, computed } from 'vue'
 
+// Gestion des statistiques
+interface GameHistory {
+    date: string;
+    word: string;
+    found: boolean;
+    attempts: number;
+    guesses: string[];
+}
+
+const loadStats = () => {
+    const saved = localStorage.getItem('tusmo_stats');
+    if (saved) {
+        return JSON.parse(saved);
+    }
+    return {
+        gamesPlayed: 0,
+        gamesWon: 0,
+        gamesLost: 0,
+        history: [] as GameHistory[]
+    };
+};
+
+const saveStats = (stats: any) => {
+    localStorage.setItem('tusmo_stats', JSON.stringify(stats));
+};
+
 export const store = reactive({
     // État du jeu
     target: "",
@@ -8,6 +34,9 @@ export const store = reactive({
     wordList: [],
     gameStatus: 'playing', // 'playing', 'won', 'lost'
     maxAttempts: 6,
+    
+    // Statistiques
+    stats: loadStats(),
 
     // Actions
     setTarget(word) {
@@ -114,12 +143,50 @@ export const store = reactive({
 
     handleWin(attempts) {
         store.gameStatus = 'won';
+        // Sauvegarder les statistiques
+        store.saveGameResult(true, attempts);
         // console.log(`🎉 Victoire en ${attempts} essais !`);
     },
 
     handleLose(word) {
         store.gameStatus = 'lost';
+        // Sauvegarder les statistiques
+        store.saveGameResult(false, store.guesses.length);
         // console.log(`😢 Défaite ! Le mot était : ${word}`);
+    },
+
+    saveGameResult(won: boolean, attempts: number) {
+        const gameData: GameHistory = {
+            date: new Date().toISOString(),
+            word: this.target,
+            found: won,
+            attempts: attempts,
+            guesses: [...this.guesses]
+        };
+
+        this.stats.gamesPlayed++;
+        if (won) {
+            this.stats.gamesWon++;
+        } else {
+            this.stats.gamesLost++;
+        }
+        this.stats.history.unshift(gameData); // Ajouter au début
+        
+        // Limiter l'historique à 50 parties
+        if (this.stats.history.length > 50) {
+            this.stats.history = this.stats.history.slice(0, 50);
+        }
+        
+        saveStats(this.stats);
+    },
+
+    getStats() {
+        return {
+            ...this.stats,
+            winRate: this.stats.gamesPlayed > 0 
+                ? Math.round((this.stats.gamesWon / this.stats.gamesPlayed) * 100) 
+                : 0
+        };
     },
 
     async initGame() {
