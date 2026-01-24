@@ -33,9 +33,6 @@
         <div v-if="stats.history.length === 0" class="no-history">
           <Icon icon="mdi:emoticon-sad-outline" width="48" height="48" />
           <p>Aucune partie jouée pour le moment.</p>
-          <button @click="goHome" class="btn-play">
-            <Icon icon="mdi:play" width="20" height="20" /> Commencer à jouer
-          </button>
         </div>
 
         <div v-else class="history-list">

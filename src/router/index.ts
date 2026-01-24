@@ -13,9 +13,9 @@ const routes = [
     component: () => import('../views/GamePage.vue')
   },
   {
-    path: '/multiplayer',
-    name: 'multiplayer',
-    component: () => import('../views/MultiplayerPage.vue')
+    path: '/stats',
+    name: 'stats',
+    component: () => import('../views/StatsPage.vue')
   },
   {
     path: '/options',

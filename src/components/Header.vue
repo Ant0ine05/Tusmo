@@ -3,34 +3,45 @@
         <div>
             <Icon v-if="router.currentRoute.value.path !== '/'" icon="line-md:home" width="24" height="24" class="button" @click="router.replace('/')" />
         </div>
-        <div>
-            <div>
-                <Icon v-if="playmusique" icon="mdi:music-note-off" width="24" height="24" class="button" @click="playMusique()" />
-                <Icon v-else icon="mdi:music-note" width="24" height="24" class="button" @click="playMusique()" />
-            </div>
-
-        </div>
     </div>
 </template>
 <script setup>  
-import { onMounted, ref } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
+import { store } from '../store/store.ts';
+
 const router = useRouter();
 const maMusique = new Audio('/sounds/Horizon_2.mp3');
-const playmusique = ref(true);
-const playMusique = () => {
-    console.log(maMusique.paused);
-    if (maMusique.paused) {
-        maMusique.play();
-        maMusique.loop = true;
-        playmusique.value = false;
+maMusique.loop = true;
+
+// Appliquer le volume initial
+maMusique.volume = store.settings.musicVolume / 100;
+
+// Démarrer la musique si les sons sont activés
+onMounted(() => {
+    if (store.settings.soundEnabled) {
+        maMusique.play().catch(() => {
+            // La lecture automatique peut être bloquée par le navigateur
+            console.log('Autoplay bloqué par le navigateur');
+        });
+    }
+});
+
+// Surveiller les changements de volume
+watch(() => store.settings.musicVolume, (newVolume) => {
+    maMusique.volume = newVolume / 100;
+});
+
+// Surveiller l'activation/désactivation des sons
+watch(() => store.settings.soundEnabled, (enabled) => {
+    if (enabled) {
+        maMusique.play().catch(() => {
+            console.log('Lecture bloquée par le navigateur');
+        });
     } else {
         maMusique.pause();
-        playmusique.value = true;
     }
-}
-onMounted(() => {
 });
 
 </script>

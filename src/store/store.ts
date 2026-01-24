@@ -9,6 +9,13 @@ interface GameHistory {
     guesses: string[];
 }
 
+interface Settings {
+    musicVolume: number;
+    soundEnabled: boolean;
+    minWordLength: number;
+    maxWordLength: number;
+}
+
 const loadStats = () => {
     const saved = localStorage.getItem('tusmo_stats');
     if (saved) {
@@ -26,6 +33,23 @@ const saveStats = (stats: any) => {
     localStorage.setItem('tusmo_stats', JSON.stringify(stats));
 };
 
+const loadSettings = (): Settings => {
+    const saved = localStorage.getItem('tusmo_settings');
+    if (saved) {
+        return JSON.parse(saved);
+    }
+    return {
+        musicVolume: 50,
+        soundEnabled: true,
+        minWordLength: 5,
+        maxWordLength: 8
+    };
+};
+
+const saveSettings = (settings: Settings) => {
+    localStorage.setItem('tusmo_settings', JSON.stringify(settings));
+};
+
 export const store = reactive({
     // État du jeu
     target: "",
@@ -37,6 +61,9 @@ export const store = reactive({
     
     // Statistiques
     stats: loadStats(),
+    
+    // Paramètres
+    settings: loadSettings(),
 
     // Actions
     setTarget(word) {
@@ -90,8 +117,8 @@ export const store = reactive({
                         .toUpperCase();
                 })
                 .filter(word =>
-                    word.length >= 5 &&
-                    word.length <= 8 &&
+                    word.length >= store.settings.minWordLength &&
+                    word.length <= store.settings.maxWordLength &&
                     /^[A-Z]+$/.test(word)
                 );
             this.setWordList(words);
@@ -223,5 +250,21 @@ export const store = reactive({
             store.validateGuess();
             event.preventDefault();
         }
+    },
+
+    // Gestion des paramètres
+    updateSettings(newSettings: Partial<Settings>) {
+        this.settings = { ...this.settings, ...newSettings };
+        saveSettings(this.settings);
+    },
+
+    resetStats() {
+        this.stats = {
+            gamesPlayed: 0,
+            gamesWon: 0,
+            gamesLost: 0,
+            history: []
+        };
+        saveStats(this.stats);
     }
 })

@@ -1,11 +1,19 @@
 <template>
-  <div>
+  <div style="margin-top: 68px;">
     <Logo size="small" class="logo" />    
     <div>
       <div class="button_grid">
-        <input type="button" value="Start Game" @click="router.push('/game')">
-        <input type="button" value="Stats" @click="router.push('/multiplayer')">
-        <input type="button" value="Options" @click="router.push('/options')">
+        <div class="button-wrapper">
+          <input type="button" value="Start Game" @click="router.push('/game')">
+        </div>
+        <div class="button-wrapper">
+          <input type="button" value="Stats" @click="router.push('/stats')">
+          <span class="new-badge">NEW</span>
+        </div>
+        <div class="button-wrapper">
+          <input type="button" value="Options" @click="router.push('/options')">
+          <span class="new-badge">NEW</span>
+        </div>
       </div>
     </div>
   </div>
@@ -22,9 +30,6 @@ onMounted(() => {
 });
 </script>
 <style scoped>
-.logo {
-  
-}
 .hello-world {
   text-align: center;
   margin-top: 2rem;
@@ -35,6 +40,46 @@ onMounted(() => {
   gap: 1rem;
   margin-top: 2rem;
 }
+
+.button-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.button-wrapper input[type="button"] {
+  width: 100%;
+}
+
+.new-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #d92b2b, #f5a623);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 10px rgba(217, 43, 43, 0.5);
+  animation: pulse 2s infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 10px rgba(217, 43, 43, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(217, 43, 43, 0.7);
+  }
+}
+
 input[type="button"] {
   padding: 1rem 2rem;
   border: 2px solid rgba(255, 255, 255, 0.1);
