@@ -45,6 +45,7 @@
       @lose="store.handleLose"
     />
     <Keyboard />
+    <AdBanner :ad-slot="AD_SLOTS.game" />
   </main>
 </template>
 
@@ -53,8 +54,10 @@ import { Icon } from '@iconify/vue';
 import GameGrid from '../components/GameGrid.vue';
 import Keyboard from '../components/Keyboard.vue';
 import Logo from '../components/Logo.vue';
+import AdBanner from '../components/AdBanner.vue';
 import { onMounted, onUnmounted } from 'vue';
 import { store } from '../store/store.ts';
+import { AD_SLOTS } from '../config/ads.js';
 
 const closeModal = () => {
   // Optionnel : fermer la modal en cliquant sur l'overlay

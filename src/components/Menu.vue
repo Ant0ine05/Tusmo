@@ -14,6 +14,9 @@
           <input type="button" value="Options" @click="router.push('/options')">
           <span class="new-badge">NEW</span>
         </div>
+        <div class="button-wrapper">
+          <input type="button" value="Règles" @click="router.push('/regles')">
+        </div>
       </div>
     </div>
   </div>

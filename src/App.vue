@@ -7,6 +7,7 @@
         <component :is="Component" />
       </transition>
     </router-view>
+    <Footer />
   </div>
 </template>
 
@@ -14,6 +15,7 @@
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import Header from './components/Header.vue';
+import Footer from './components/Footer.vue';
 
 
 
@@ -70,6 +72,9 @@ watch(() => route.path, (newPath) => {
 .app-container {
     /* On s'assure que ça prend toute la hauteur */
     min-height: 100vh;
+    /* Colonne flex pour plaquer le footer en bas de page */
+    display: flex;
+    flex-direction: column;
     margin: 0;
     color: var(--color-text); /* Juste au cas où */
     font-family: sans-serif; /* Temporaire */
