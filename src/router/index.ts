@@ -55,6 +55,30 @@ const router = createRouter({
   }
 })
 
+// Après un déploiement, une page restée ouverte (ou un cache pas encore à jour) peut réclamer un
+// fichier qui n'existe plus sous ce nom : l'hébergeur répond alors par index.html et l'import échoue
+// (« Failed to fetch dynamically imported module »). Recharger la page récupère un index.html et des
+// fichiers qui vont ensemble. Un seul essai par 10 s, pour ne pas boucler si le fichier manque vraiment.
+const STALE_CHUNK_ERROR = /dynamically imported module|Importing a module script failed|Unable to preload CSS/i
+const RELOAD_KEY = 'tusmo_chunk_reload'
+
+const reloadOnStaleChunk = (error: unknown, targetUrl: string): boolean => {
+  if (!STALE_CHUNK_ERROR.test(String((error as Error)?.message))) return false
+  try {
+    if (Date.now() - Number(sessionStorage.getItem(RELOAD_KEY) || 0) < 10_000) return false
+    sessionStorage.setItem(RELOAD_KEY, String(Date.now()))
+  } catch {
+    return false // sans sessionStorage, rien n'empêcherait de boucler
+  }
+  window.location.assign(targetUrl)
+  return true
+}
+
+// Une erreur de navigation ne doit pas disparaître en silence : on la garde dans la console
+router.onError((error, to) => {
+  if (!reloadOnStaleChunk(error, to.fullPath)) console.error(error)
+})
+
 // Balises <head> propres à chaque page (voir src/config/seo.js). Le HTML servi les contient déjà
 // pour la page d'arrivée ; on les remet à jour quand on navigue d'une page à l'autre.
 const tag = (selector: string) => document.head.querySelector<HTMLElement>(selector)
