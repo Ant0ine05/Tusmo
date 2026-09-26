@@ -119,15 +119,27 @@
       Attention : modifier la longueur des mots lance une nouvelle partie.
     </p>
 
+    <h2>Le mot du jour et la série</h2>
+    <p>
+      En plus des parties libres, Tomus propose un <strong>mot du jour</strong> : chaque jour, un seul mot est
+      à deviner, <strong>le même pour tous les joueurs</strong>. Il change à minuit, heure de Paris, et vous
+      n'avez qu'une partie par jour. Ce mode ignore les réglages de longueur des Options.
+    </p>
+    <p>
+      Chaque mot du jour trouvé prolonge votre <strong>série</strong> d'un jour. Si vous perdez, ou si vous
+      laissez passer un jour sans jouer, la série repart de zéro. Votre série en cours et votre meilleure
+      série sont visibles dans la page <strong>Stats</strong>.
+    </p>
+
     <h2>Fin de partie et statistiques</h2>
     <p>
       Si vous trouvez le mot, la partie est gagnée et le nombre d'essais utilisés est affiché. Si vous
       épuisez vos 6 essais, la partie est perdue et le mot vous est révélé. Dans les deux cas, vous pouvez
-      relancer immédiatement une partie avec un nouveau mot tiré au hasard.
+      relancer immédiatement une partie libre avec un nouveau mot tiré au hasard.
     </p>
     <p>
-      Vos résultats (parties jouées, gagnées, perdues, taux de réussite et historique de vos 50 dernières
-      parties) sont consultables dans la page <strong>Stats</strong>. Ils sont enregistrés uniquement dans
+      Vos résultats (parties jouées, gagnées, perdues, taux de réussite, série du mot du jour et
+      historique de vos 50 dernières parties) sont consultables dans la page <strong>Stats</strong>. Ils sont enregistrés uniquement dans
       votre navigateur, sur votre appareil.
     </p>
 
@@ -163,8 +175,15 @@
     <section ref="faqSection">
     <h3>Le mot change-t-il chaque jour ?</h3>
     <p>
-      Non. Un nouveau mot est tiré au hasard à chaque nouvelle partie, vous pouvez donc enchaîner autant de
-      parties que vous le souhaitez.
+      Cela dépend du mode. Le mot du jour change chaque jour à minuit (heure de Paris) et il est le même
+      pour tous les joueurs. En mode « Jouer », un nouveau mot est tiré au hasard à chaque partie : vous
+      pouvez donc enchaîner autant de parties que vous le souhaitez.
+    </p>
+
+    <h3>Comment fonctionne la série ?</h3>
+    <p>
+      La série compte les mots du jour gagnés plusieurs jours de suite. Elle repart de zéro si vous perdez
+      ou si vous manquez un jour.
     </p>
 
     <h3>Le jeu est-il gratuit ?</h3>

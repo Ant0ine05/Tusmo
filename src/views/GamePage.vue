@@ -3,27 +3,20 @@
     <!-- Le logo est le titre visuel de la page ; le texte masqué donne son sujet au h1 -->
     <h1 class="site-title">
       <Logo size="small" class="logo" aria-hidden="true" />
-      <span class="sr-only">Tomus : devinez le mot mystère en 6 essais</span>
+      <span class="sr-only">{{ heading }}</span>
     </h1>
-    <br>
+    <p v-if="isDaily" class="mode-label">Mot du jour · {{ dayLabel }}</p>
+    <br v-else>
     <!-- Modal Victoire/Défaite -->
     <div v-if="store.gameStatus !== 'playing'" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
-        
+
         <!-- Victoire -->
         <div v-if="store.gameStatus === 'won'" class="modal-win">
           <div class="modal-icon"><Icon icon="mdi:party-popper" width="48" height="48" /></div>
           <h2>BRAVO !</h2>
           <p>Tu as trouvé le mot en <strong>{{ store.guesses.length }}</strong> essai{{ store.guesses.length > 1 ? 's' : '' }} !</p>
           <div class="modal-word">{{ store.target }}</div>
-          <div class="modal-actions">
-            <button @click="store.resetGame()" class="btn-restart primary">
-             <Icon icon="mdi:restart" width="24" height="24" /> Rejouer
-            </button>
-            <button @click="$router.replace('/')" class="btn-restart secondary">
-               <Icon icon="line-md:home" width="24" height="24"/>
-            </button>
-          </div>
         </div>
 
         <!-- Défaite -->
@@ -32,14 +25,33 @@
           <h2>PERDU !</h2>
           <p>Le mot était :</p>
           <div class="modal-word">{{ store.target }}</div>
-          <div class="modal-actions">
-            <button @click="store.resetGame()" class="btn-restart primary">
-              <Icon icon="mdi:restart" width="24" height="24" /> Réessayer
-            </button>
-            <button @click="$router.replace('/')" class="btn-restart secondary">
-              <Icon icon="line-md:home" width="24" height="24"/>
-            </button>
-          </div>
+        </div>
+
+        <!-- Mot du jour : série et prochain mot -->
+        <div v-if="isDaily" class="daily-info">
+          <p v-if="store.gameStatus === 'won'" class="daily-streak">
+            <Icon icon="mdi:fire" width="24" height="24" />
+            Série : <strong>{{ streak.current }}</strong> jour{{ streak.current > 1 ? 's' : '' }}
+            <span class="daily-record">· Record : {{ streak.max }}</span>
+          </p>
+          <p v-else class="daily-streak">Série interrompue. Un nouveau mot vous attend demain !</p>
+
+          <p v-if="dayChanged">
+            <button @click="loadNewDaily" class="btn-restart primary">Voir le nouveau mot du jour</button>
+          </p>
+          <p v-else class="daily-next">Prochain mot dans <strong>{{ countdown }}</strong></p>
+        </div>
+
+        <div class="modal-actions">
+          <button v-if="isDaily" @click="$router.push('/game')" class="btn-restart primary">
+            <Icon icon="mdi:play" width="24" height="24" /> Partie libre
+          </button>
+          <button v-else @click="store.resetGame()" class="btn-restart primary">
+            <Icon icon="mdi:restart" width="24" height="24" /> {{ store.gameStatus === 'won' ? 'Rejouer' : 'Réessayer' }}
+          </button>
+          <button @click="$router.replace('/')" class="btn-restart secondary">
+            <Icon icon="line-md:home" width="24" height="24"/>
+          </button>
         </div>
 
       </div>
@@ -59,21 +71,71 @@ import GameGrid from '../components/GameGrid.vue';
 import Keyboard from '../components/Keyboard.vue';
 import Logo from '../components/Logo.vue';
 import AdBanner from '../components/AdBanner.vue';
-import { onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { store } from '../store/store.ts';
+import { formatDay, secondsUntilNextDay, todayParis } from '../store/daily.ts';
 import { AD_SLOTS } from '../config/ads.js';
+
+// 'free' : mot tiré au hasard (/game) ; 'daily' : mot du jour (/mot-du-jour)
+const props = defineProps({
+  mode: {
+    type: String,
+    default: 'free'
+  }
+});
+
+const isDaily = computed(() => props.mode === 'daily');
+const heading = computed(() =>
+  isDaily.value
+    ? 'Tomus : le mot du jour à deviner en 6 essais, le même pour tous les joueurs'
+    : 'Tomus : devinez le mot mystère en 6 essais'
+);
+const dayLabel = computed(() => formatDay(store.dailyDate || todayParis()));
+const streak = computed(() => store.getDailyStreak());
+
+// Compte à rebours jusqu'au prochain mot (minuit, heure de Paris)
+const secondsLeft = ref(secondsUntilNextDay());
+const dayChanged = ref(false);
+const countdown = computed(() => {
+  const pad = (n) => String(n).padStart(2, '0');
+  const s = secondsLeft.value;
+  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+});
+
+let timer;
+const tick = () => {
+  if (!isDaily.value) return;
+  secondsLeft.value = secondsUntilNextDay();
+  // La page est restée ouverte après minuit : un nouveau mot est disponible
+  dayChanged.value = store.dailyDate !== '' && store.dailyDate !== todayParis();
+};
 
 const closeModal = () => {
   // Optionnel : fermer la modal en cliquant sur l'overlay
 };
 
+const start = () => (isDaily.value ? store.startDaily() : store.initGame());
+
+const loadNewDaily = async () => {
+  dayChanged.value = false;
+  await store.startDaily();
+};
+
 onMounted(async () => {
-  await store.initGame();
+  await start();
   window.addEventListener('keydown', store.handleKeydown);
+  timer = setInterval(tick, 1000);
+});
+
+// /game et /mot-du-jour partagent ce composant : passer de l'un à l'autre ne le recrée pas
+watch(() => props.mode, () => {
+  dayChanged.value = false;
+  start();
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', store.handleKeydown);
+  clearInterval(timer);
 });
 </script>
 
@@ -150,6 +212,44 @@ onUnmounted(() => {
   gap: 1rem;
   margin-top: 2rem;
   justify-content: center;
+}
+
+/* Mot du jour : indication du mode sous le logo, puis série et compte à rebours dans la modale */
+.mode-label {
+  margin: 0.6rem 0 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffbd00;
+}
+
+.daily-info {
+  margin-top: 1.5rem;
+}
+
+.daily-info .daily-streak {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  color: #ffbd00;
+  font-weight: 600;
+}
+
+.daily-record {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+}
+
+.daily-info .daily-next {
+  font-size: 1rem;
+}
+
+.daily-info .btn-restart {
+  margin: 0 auto;
+  max-width: none;
 }
 
 .btn-restart {

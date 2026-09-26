@@ -63,6 +63,8 @@ const checkWin = (guess) => {
 
 // Vérifier après chaque guess
 const checkGameStatus = () => {
+  // Une partie reprise déjà terminée (mot du jour) ne doit pas être comptée une seconde fois
+  if (store.gameStatus !== 'playing') return;
   if (store.guesses.length === 0) return;
   
   const lastGuess = store.guesses[store.guesses.length - 1];

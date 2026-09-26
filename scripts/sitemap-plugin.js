@@ -12,6 +12,15 @@ const PAGES = [
     path: '/game',
     sources: ['src/views/GamePage.vue', 'src/components/GameGrid.vue', 'src/components/Keyboard.vue']
   },
+  {
+    path: '/mot-du-jour',
+    sources: [
+      'src/views/GamePage.vue',
+      'src/components/GameGrid.vue',
+      'src/components/Keyboard.vue',
+      'src/store/daily.ts'
+    ]
+  },
   { path: '/regles', sources: ['src/views/RulesPage.vue'] },
   { path: '/confidentialite', sources: ['src/views/PrivacyPage.vue', 'src/config/site.js'] },
   { path: '/mentions-legales', sources: ['src/views/LegalPage.vue', 'src/config/site.js'] }

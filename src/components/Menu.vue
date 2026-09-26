@@ -8,6 +8,12 @@
     <nav aria-label="Menu principal">
       <div class="button_grid">
         <div class="button-wrapper">
+          <router-link to="/mot-du-jour" class="menu-button">Mot du jour</router-link>
+          <span v-if="streak > 0" class="streak-badge" :title="`Série en cours : ${streak} jour${streak > 1 ? 's' : ''}`">
+            <Icon icon="mdi:fire" width="16" height="16" /> {{ streak }}
+          </span>
+        </div>
+        <div class="button-wrapper">
           <router-link to="/game" class="menu-button">Jouer</router-link>
         </div>
         <div class="button-wrapper">
@@ -26,8 +32,13 @@
   </div>
 </template>
 <script setup>
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
+import { Icon } from '@iconify/vue';
 import Logo from './Logo.vue';
+import { store } from '../store/store.ts';
+
+// Série de mots du jour gagnés d'affilée, affichée sur le bouton tant qu'elle est en cours
+const streak = computed(() => store.getDailyStreak().current);
 
 onMounted(() => {
   // console.log('HelloWorld component mounted');
@@ -90,6 +101,24 @@ onMounted(() => {
   letter-spacing: 1px;
   box-shadow: 0 2px 10px rgba(217, 43, 43, 0.5);
   animation: pulse 2s infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.streak-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  background: linear-gradient(135deg, #f5a623, #d92b2b);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(217, 43, 43, 0.5);
   z-index: 10;
   pointer-events: none;
 }

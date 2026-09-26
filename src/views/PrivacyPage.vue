@@ -17,13 +17,15 @@
 
     <h2>Données enregistrées sur votre appareil</h2>
     <p>
-      Pour fonctionner, le jeu enregistre deux éléments dans le stockage local (<em>localStorage</em>) de
+      Pour fonctionner, le jeu enregistre trois éléments dans le stockage local (<em>localStorage</em>) de
       votre navigateur :
     </p>
     <ul>
-      <li><strong>tusmo_stats</strong> : vos statistiques (parties jouées, gagnées, perdues) et l'historique
-        de vos 50 dernières parties ;</li>
-      <li><strong>tusmo_settings</strong> : vos préférences (volume de la musique, sons, longueur des mots).</li>
+      <li><strong>tusmo_stats</strong> : vos statistiques (parties jouées, gagnées, perdues), votre série de
+        mots du jour et l'historique de vos 50 dernières parties ;</li>
+      <li><strong>tusmo_settings</strong> : vos préférences (volume de la musique, sons, longueur des mots) ;</li>
+      <li><strong>tusmo_daily</strong> : la partie du mot du jour en cours ou terminée (jour, mot et
+        propositions), pour que vous puissiez la reprendre si vous rechargez la page.</li>
     </ul>
     <p>
       Ces informations restent sur votre appareil et ne nous sont jamais transmises. Vous pouvez les

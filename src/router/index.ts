@@ -19,6 +19,17 @@ const routes = [
     }
   },
   {
+    path: '/mot-du-jour',
+    name: 'daily',
+    component: () => import('../views/GamePage.vue'),
+    props: { mode: 'daily' },
+    meta: {
+      title: 'Mot du jour Motus/Wordle - Tomus',
+      description:
+        'Le mot du jour Tomus : le même mot pour tous les joueurs, 6 essais pour le trouver. Gagnez chaque jour pour garder votre série. Nouveau mot chaque jour à minuit.'
+    }
+  },
+  {
     path: '/stats',
     name: 'stats',
     component: () => import('../views/StatsPage.vue')

@@ -26,6 +26,22 @@
         </div>
       </div>
 
+      <!-- Mot du jour : série de victoires consécutives -->
+      <div class="stats-overview daily-overview">
+        <div class="stat-card streak">
+          <div class="stat-value"><Icon icon="mdi:fire" width="32" height="32" /> {{ dailyStreak.current }}</div>
+          <div class="stat-label">Série en cours</div>
+        </div>
+        <div class="stat-card streak">
+          <div class="stat-value">{{ dailyStreak.max }}</div>
+          <div class="stat-label">Meilleure série</div>
+        </div>
+        <div class="stat-card streak">
+          <div class="stat-value">{{ dailyStreak.won }}/{{ dailyStreak.played }}</div>
+          <div class="stat-label">Mots du jour gagnés</div>
+        </div>
+      </div>
+
       <!-- Historique des parties -->
       <div class="history-section">
         <h2><Icon icon="mdi:history" width="24" height="24" /> Historique</h2>
@@ -46,6 +62,7 @@
               <div class="history-date">
                 <Icon :icon="game.found ? 'mdi:check-circle' : 'mdi:close-circle'" width="20" height="20" />
                 {{ formatDate(game.date) }}
+                <span v-if="game.daily" class="daily-tag">Mot du jour</span>
               </div>
               <div class="history-word">{{ game.word }}</div>
             </div>
@@ -87,6 +104,7 @@ const router = useRouter();
 const expandedGames = ref(new Set());
 
 const stats = computed(() => store.getStats());
+const dailyStreak = computed(() => store.getDailyStreak());
 
 const goHome = () => {
   router.push('/'); 
@@ -223,6 +241,40 @@ const toggleDetails = (index) => {
 .stat-card.rate:hover {
   border-color: rgba(255, 189, 0, 0.6);
   box-shadow: 0 10px 30px rgba(255, 189, 0, 0.2);
+}
+
+.stat-card.streak {
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+.stat-card.streak:hover {
+  border-color: rgba(245, 166, 35, 0.6);
+  box-shadow: 0 10px 30px rgba(245, 166, 35, 0.2);
+}
+
+.stat-card.streak .stat-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: #f5a623;
+}
+
+/* Les trois cartes du mot du jour restent sur une ligne, même sur mobile */
+.daily-overview {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.daily-tag {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(245, 166, 35, 0.2);
+  color: #f5a623;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
@@ -458,6 +510,24 @@ const toggleDetails = (index) => {
 
   .history-word {
     font-size: 1.1rem;
+  }
+
+  .daily-overview {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .daily-overview .stat-card {
+    padding: 1rem 0.5rem;
+  }
+
+  .daily-overview .stat-value {
+    font-size: 1.6rem;
+  }
+
+  .daily-overview .stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
   }
 }
 </style>

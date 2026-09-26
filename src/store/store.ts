@@ -1,4 +1,5 @@
 import { reactive, computed } from 'vue'
+import { todayParis, previousDay, wordOfTheDay } from './daily.ts'
 
 // Gestion des statistiques
 interface GameHistory {
@@ -7,7 +8,28 @@ interface GameHistory {
     found: boolean;
     attempts: number;
     guesses: string[];
+    daily?: boolean;
 }
+
+// Série du mot du jour : jours consécutifs gagnés
+const emptyDailyStats = () => ({
+    played: 0,
+    won: 0,
+    currentStreak: 0,
+    maxStreak: 0,
+    lastWinDate: '' // AAAA-MM-JJ du dernier mot du jour gagné
+});
+
+// Partie du mot du jour en cours ou terminée, pour la reprendre après un rechargement
+const DAILY_KEY = 'tusmo_daily';
+
+const loadDaily = () => {
+    try {
+        return JSON.parse(localStorage.getItem(DAILY_KEY) || 'null');
+    } catch {
+        return null;
+    }
+};
 
 interface Settings {
     musicVolume: number;
@@ -19,13 +41,17 @@ interface Settings {
 const loadStats = () => {
     const saved = localStorage.getItem('tusmo_stats');
     if (saved) {
-        return JSON.parse(saved);
+        const stats = JSON.parse(saved);
+        // Les sauvegardes d'avant le mot du jour n'ont pas de série : on l'ajoute sans toucher au reste
+        stats.daily = { ...emptyDailyStats(), ...stats.daily };
+        return stats;
     }
     return {
         gamesPlayed: 0,
         gamesWon: 0,
         gamesLost: 0,
-        history: [] as GameHistory[]
+        history: [] as GameHistory[],
+        daily: emptyDailyStats()
     };
 };
 
@@ -50,8 +76,13 @@ const saveSettings = (settings: Settings) => {
     localStorage.setItem('tusmo_settings', JSON.stringify(settings));
 };
 
+// Le fichier de mots (2 Mo) n'est téléchargé qu'une fois, même si la liste est rechargée
+let wordsText: string | null = null;
+
 export const store = reactive({
     // État du jeu
+    mode: 'free', // 'free' (mot tiré au hasard) ou 'daily' (mot du jour)
+    dailyDate: '', // jour du mot du jour en cours (AAAA-MM-JJ)
     target: "",
     guesses: [],
     current: "",
@@ -95,15 +126,23 @@ export const store = reactive({
     //     this.current = this.target[0]
     // },
 
-    async loadWords() {
+    // Par défaut la liste suit les options du joueur ; le mot du jour impose ses propres longueurs
+    async loadWords(
+        minLength = store.settings.minWordLength,
+        maxLength = store.settings.maxWordLength
+    ) {
         try {
-            const response = await fetch('/mots.txt');
+            if (wordsText === null) {
+                const response = await fetch('/mots.txt');
 
-            if (!response.ok) {
-                throw new Error(`Fichier non trouvé: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`Fichier non trouvé: ${response.status}`);
+                }
+
+                wordsText = await response.text();
             }
 
-            const text = await response.text();
+            const text = wordsText;
 
             const words = text
                 .split('\n')
@@ -117,8 +156,8 @@ export const store = reactive({
                         .toUpperCase();
                 })
                 .filter(word =>
-                    word.length >= store.settings.minWordLength &&
-                    word.length <= store.settings.maxWordLength &&
+                    word.length >= minLength &&
+                    word.length <= maxLength &&
                     /^[A-Z]+$/.test(word)
                 );
             this.setWordList(words);
@@ -162,13 +201,16 @@ export const store = reactive({
             if (this.wordList.includes(this.current)) {
                 this.guesses.push(this.current);
                 this.current = this.target[0]; // Réinitialiser avec la première lettre
+                if (this.mode === 'daily') this.saveDaily();
             } else {
                 this.current = this.target[0]; // Réinitialiser avec la première lettre même si invalide
             }
         }
     },
 
+    // Une partie déjà terminée (par exemple reprise après un rechargement) n'est comptée qu'une fois
     handleWin(attempts) {
+        if (store.gameStatus !== 'playing') return;
         store.gameStatus = 'won';
         // Sauvegarder les statistiques
         store.saveGameResult(true, attempts);
@@ -176,6 +218,7 @@ export const store = reactive({
     },
 
     handleLose(word) {
+        if (store.gameStatus !== 'playing') return;
         store.gameStatus = 'lost';
         // Sauvegarder les statistiques
         store.saveGameResult(false, store.guesses.length);
@@ -188,8 +231,14 @@ export const store = reactive({
             word: this.target,
             found: won,
             attempts: attempts,
-            guesses: [...this.guesses]
+            guesses: [...this.guesses],
+            daily: this.mode === 'daily'
         };
+
+        if (this.mode === 'daily') {
+            this.recordDailyResult(won);
+            this.saveDaily();
+        }
 
         this.stats.gamesPlayed++;
         if (won) {
@@ -216,12 +265,96 @@ export const store = reactive({
         };
     },
 
+    // Partie libre : une partie déjà en cours est conservée quand on revient sur la page
     async initGame() {
-        if (this.target !== "") return; // Ne pas réinitialiser si déjà défini 
-        const words = this.wordList.length > 0 ? this.wordList : await this.loadWords();
+        if (this.mode === 'free' && this.target !== "") return;
+
+        this.mode = 'free';
+        this.target = "";
+        this.guesses = [];
+        this.current = "";
+        this.gameStatus = 'playing';
+
+        const words = await this.loadWords();
         const randomWord = words[Math.floor(Math.random() * words.length)];
 
         this.setTarget(randomWord);
+    },
+
+    // Mot du jour : même mot pour tous, indépendant des options de longueur
+    async startDaily() {
+        const today = todayParis();
+        if (this.mode === 'daily' && this.dailyDate === today && this.target !== "") return;
+
+        this.mode = 'daily';
+        this.dailyDate = today;
+        this.target = "";
+        this.guesses = [];
+        this.current = "";
+        this.gameStatus = 'playing';
+
+        const target = await wordOfTheDay(today);
+        const words = await this.loadWords(target.length, target.length);
+        // Le mot du jour doit toujours être une proposition acceptée
+        if (!words.includes(target)) words.push(target);
+
+        this.setTarget(target);
+
+        // Reprise de la partie du jour après un rechargement ou un retour sur la page
+        const saved = loadDaily();
+        if (saved && saved.date === today && saved.word === target) {
+            this.guesses = saved.guesses;
+            this.gameStatus = saved.status;
+            // Rechargé pendant l'animation de la dernière proposition : on la compte maintenant
+            if (this.gameStatus === 'playing') {
+                if (this.guesses[this.guesses.length - 1] === target) {
+                    this.handleWin(this.guesses.length);
+                } else if (this.guesses.length >= this.maxAttempts) {
+                    this.handleLose(target);
+                }
+            }
+        }
+    },
+
+    saveDaily() {
+        localStorage.setItem(DAILY_KEY, JSON.stringify({
+            date: this.dailyDate,
+            word: this.target,
+            guesses: this.guesses,
+            status: this.gameStatus
+        }));
+    },
+
+    // La série compte les jours gagnés d'affilée : une défaite ou un jour sauté la remet à zéro
+    recordDailyResult(won: boolean) {
+        const daily = this.stats.daily;
+        // Déjà gagné ce jour-là (par exemple partie rejouée après un effacement partiel des données)
+        if (won && daily.lastWinDate === this.dailyDate) return;
+
+        daily.played++;
+        if (won) {
+            daily.won++;
+            daily.currentStreak = daily.lastWinDate === previousDay(this.dailyDate)
+                ? daily.currentStreak + 1
+                : 1;
+            daily.lastWinDate = this.dailyDate;
+            daily.maxStreak = Math.max(daily.maxStreak, daily.currentStreak);
+        } else {
+            daily.currentStreak = 0;
+        }
+    },
+
+    // Série affichée : elle reste vivante jusqu'à la fin du jour qui suit la dernière victoire
+    getDailyStreak() {
+        const daily = this.stats.daily;
+        const today = todayParis();
+        const alive = daily.lastWinDate === today || daily.lastWinDate === previousDay(today);
+        return {
+            current: alive ? daily.currentStreak : 0,
+            max: daily.maxStreak,
+            played: daily.played,
+            won: daily.won
+        };
     },
 
     async resetGame() {
@@ -263,7 +396,8 @@ export const store = reactive({
             gamesPlayed: 0,
             gamesWon: 0,
             gamesLost: 0,
-            history: []
+            history: [],
+            daily: emptyDailyStats()
         };
         saveStats(this.stats);
     }

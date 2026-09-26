@@ -203,6 +203,10 @@ const updateMaxLength = () => {
 };
 
 const reloadGame = async () => {
+  // Le mot du jour ne dépend pas de ces options : on n'y touche pas. Les nouvelles longueurs
+  // s'appliqueront à la prochaine partie libre.
+  if (store.mode === 'daily') return;
+
   // Recharger la liste de mots avec les nouveaux paramètres
   await store.loadWords();
   // Si une partie est en cours ou terminée, la réinitialiser
