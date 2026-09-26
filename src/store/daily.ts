@@ -1,3 +1,6 @@
+import { SITE } from '../config/site.js'
+import { getGuessStatuses, type LetterStatus } from './statuses.ts'
+
 // Outils du "mot du jour". Un jour change à minuit heure de Paris pour tous les joueurs,
 // quel que soit le fuseau de leur appareil : c'est ce qui rend le mot commun à tous.
 const MS_PER_DAY = 86_400_000
@@ -46,6 +49,33 @@ export const formatDay = (isoDate: string): string =>
         day: 'numeric',
         month: 'long'
     })
+
+const SQUARES: Record<LetterStatus, string> = { correct: '🟥', present: '🟨', absent: '⬜' }
+
+// Résultat à partager : la grille des couleurs, sans jamais révéler le mot
+export const buildShareText = (
+    isoDate: string,
+    target: string,
+    guesses: string[],
+    won: boolean,
+    maxAttempts: number,
+    streak: number
+): string => {
+    const grid = guesses
+        .map((guess) => getGuessStatuses(guess, target).map((status) => SQUARES[status]).join(''))
+        .join('\n')
+
+    return [
+        `Tomus - Mot du jour du ${formatDay(isoDate)} : ${won ? guesses.length : 'X'}/${maxAttempts}`,
+        won && streak > 1 ? `🔥 Série de ${streak} jours` : null,
+        '',
+        grid,
+        '',
+        `${SITE.url}/mot-du-jour`
+    ]
+        .filter((line) => line !== null)
+        .join('\n')
+}
 
 // La liste n'est chargée que lorsqu'on joue le mot du jour
 export const wordOfTheDay = async (isoDate: string): Promise<string> => {

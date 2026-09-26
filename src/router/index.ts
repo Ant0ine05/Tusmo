@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Menu from '../components/Menu.vue'
-import { SITE } from '../config/site.js'
+import { seoFor } from '../config/seo.js'
 
 const routes = [
   {
@@ -11,23 +11,13 @@ const routes = [
   {
     path: '/game',
     name: 'game',
-    component: () => import('../views/GamePage.vue'),
-    meta: {
-      title: 'Jouer à Tomus - Motus/Wordle gratuit en ligne',
-      description:
-        'Jouez gratuitement à Tomus, sans inscription : trouvez le mot mystère en 6 essais grâce aux indices de couleur. Enchaînez les parties dans votre navigateur.'
-    }
+    component: () => import('../views/GamePage.vue')
   },
   {
     path: '/mot-du-jour',
     name: 'daily',
     component: () => import('../views/GamePage.vue'),
-    props: { mode: 'daily' },
-    meta: {
-      title: 'Mot du jour Motus/Wordle - Tomus',
-      description:
-        'Le mot du jour Tomus : le même mot pour tous les joueurs, 6 essais pour le trouver. Gagnez chaque jour pour garder votre série. Nouveau mot chaque jour à minuit.'
-    }
+    props: { mode: 'daily' }
   },
   {
     path: '/stats',
@@ -42,24 +32,17 @@ const routes = [
   {
     path: '/regles',
     name: 'rules',
-    component: () => import('../views/RulesPage.vue'),
-    meta: {
-      title: 'Règles du jeu Motus/Wordle - Comment jouer à Tomus',
-      description:
-        'Découvrez les règles de Tomus : devinez le mot mystère en 6 essais grâce aux indices de couleur. Guide complet pour bien jouer, même pour les débutants.'
-    }
+    component: () => import('../views/RulesPage.vue')
   },
   {
     path: '/confidentialite',
     name: 'privacy',
-    component: () => import('../views/PrivacyPage.vue'),
-    meta: { title: 'Politique de confidentialité - Tomus' }
+    component: () => import('../views/PrivacyPage.vue')
   },
   {
     path: '/mentions-legales',
     name: 'legal',
-    component: () => import('../views/LegalPage.vue'),
-    meta: { title: 'Mentions légales - Tomus' }
+    component: () => import('../views/LegalPage.vue')
   }
 ]
 
@@ -72,25 +55,23 @@ const router = createRouter({
   }
 })
 
-// Titre, meta description et URL canonique propres à chaque page,
-// avec ceux de index.html en valeur par défaut
-const defaultTitle = document.title
-const descriptionTag = document.querySelector<HTMLMetaElement>('meta[name="description"]')
-const defaultDescription = descriptionTag?.content ?? ''
-const canonicalTag = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
-const defaultCanonical = canonicalTag?.href ?? `${SITE.url}/`
+// Balises <head> propres à chaque page (voir src/config/seo.js). Le HTML servi les contient déjà
+// pour la page d'arrivée ; on les remet à jour quand on navigue d'une page à l'autre.
+const tag = (selector: string) => document.head.querySelector<HTMLElement>(selector)
+const setContent = (selector: string, value: string) => tag(selector)?.setAttribute('content', value)
 
 router.afterEach((to) => {
-  document.title = (to.meta.title as string | undefined) ?? defaultTitle
-  descriptionTag?.setAttribute(
-    'content',
-    (to.meta.description as string | undefined) ?? defaultDescription
-  )
-  // Sans query ni hash ; une URL qui ne correspond à aucune route retombe sur l'accueil
-  canonicalTag?.setAttribute(
-    'href',
-    to.matched.length ? `${SITE.url}${to.path}` : defaultCanonical
-  )
+  // Une URL qui ne correspond à aucune route retombe sur l'accueil
+  const seo = seoFor(to.matched[0]?.path ?? '/')
+
+  document.title = seo.title
+  setContent('meta[name="description"]', seo.description)
+  tag('link[rel="canonical"]')?.setAttribute('href', seo.url)
+  setContent('meta[property="og:url"]', seo.url)
+  setContent('meta[property="og:title"]', seo.shareTitle)
+  setContent('meta[property="og:description"]', seo.shareDescription)
+  setContent('meta[name="twitter:title"]', seo.shareTitle)
+  setContent('meta[name="twitter:description"]', seo.shareDescription)
 })
 
 export default router

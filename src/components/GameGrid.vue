@@ -1,6 +1,7 @@
 <script setup>
 import { computed, watch } from 'vue';
 import { store } from '../store/store.ts';
+import { getGuessStatuses } from '../store/statuses.ts';
 
 const emit = defineEmits(['win', 'lose']);
 
@@ -23,38 +24,7 @@ const revealedLetters = computed(() => {
   return revealed;
 });
 
-// --- LOGIQUE 2 : L'ALGORITHME DES COULEURS (LE FIX DU BUG) ---
-const getGuessStatuses = (guess, target) => {
-    const guessArr = guess.split('');
-    const targetArr = target.split('');
-    
-    const result = new Array(guess.length).fill('absent'); 
-    
-    const targetCounts = {};
-    for (const char of targetArr) {
-        targetCounts[char] = (targetCounts[char] || 0) + 1;
-    }
-
-    // PASSE 1 : Les Bien Placés (Rouge) - PRIORITAIRE
-    guessArr.forEach((letter, i) => {
-        if (letter === targetArr[i]) {
-            result[i] = 'correct';
-            targetCounts[letter]--;
-        }
-    });
-
-    // PASSE 2 : Les Mal Placés (Jaune)
-    guessArr.forEach((letter, i) => {
-        if (result[i] !== 'correct') { 
-            if (targetCounts[letter] > 0) {
-                result[i] = 'present';
-                targetCounts[letter]--;
-            }
-        }
-    });
-
-    return result;
-};
+// (L'algorithme des couleurs est dans store/statuses.ts : le partage du résultat s'en sert aussi.)
 
 // --- LOGIQUE 3 : VÉRIFIER SI LE MOT EST CORRECT ---
 const checkWin = (guess) => {

@@ -36,6 +36,14 @@
           </p>
           <p v-else class="daily-streak">Série interrompue. Un nouveau mot vous attend demain !</p>
 
+          <!-- Grille d'émojis sans le mot : c'est ce qui fait circuler le jeu -->
+          <p>
+            <button @click="shareResult" class="btn-restart share" aria-live="polite">
+              <Icon :icon="shareState === 'copied' ? 'mdi:check' : 'mdi:share-variant'" width="24" height="24" />
+              {{ shareLabel }}
+            </button>
+          </p>
+
           <p v-if="dayChanged">
             <button @click="loadNewDaily" class="btn-restart primary">Voir le nouveau mot du jour</button>
           </p>
@@ -62,6 +70,37 @@
     />
     <Keyboard />
     <AdBanner :ad-slot="AD_SLOTS.game" />
+
+    <!-- Texte propre à chaque mode : /game et /mot-du-jour partagent ce composant, et la grille
+         seule ne dit pas de quoi parle la page -->
+    <section v-if="isDaily" class="about">
+      <h2>Le mot du jour Tomus</h2>
+      <p>
+        Un nouveau mot mystère est proposé chaque jour à minuit (heure de Paris), le même pour tous
+        les joueurs. Vous avez 6 essais pour le trouver : la première lettre est donnée, et chaque
+        proposition se colore pour vous guider (rouge : bien placée, jaune : mal placée, gris :
+        absente).
+      </p>
+      <p>
+        Trouvez le mot chaque jour pour allonger votre série, puis partagez votre grille d'émojis avec
+        vos amis, sans dévoiler la réponse. Une seule partie par jour : pour vous entraîner sans limite,
+        lancez une <router-link to="/game">partie libre</router-link>, ou lisez les
+        <router-link to="/regles">règles du jeu</router-link>.
+      </p>
+    </section>
+    <section v-else class="about">
+      <h2>Partie libre</h2>
+      <p>
+        Le mot mystère est tiré au hasard parmi des milliers de mots français, de 5 à 8 lettres par
+        défaut (réglable dans les <router-link to="/options">options</router-link>). Trouvez-le en
+        6 essais grâce aux indices de couleur, puis enchaînez autant de parties que vous voulez.
+      </p>
+      <p>
+        Envie d'un défi commun à tous les joueurs ? Essayez le
+        <router-link to="/mot-du-jour">mot du jour</router-link> : un seul mot par jour, le même pour
+        tout le monde, et une série à faire durer.
+      </p>
+    </section>
   </main>
 </template>
 
@@ -73,7 +112,7 @@ import Logo from '../components/Logo.vue';
 import AdBanner from '../components/AdBanner.vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { store } from '../store/store.ts';
-import { formatDay, secondsUntilNextDay, todayParis } from '../store/daily.ts';
+import { buildShareText, formatDay, secondsUntilNextDay, todayParis } from '../store/daily.ts';
 import { AD_SLOTS } from '../config/ads.js';
 
 // 'free' : mot tiré au hasard (/game) ; 'daily' : mot du jour (/mot-du-jour)
@@ -101,6 +140,41 @@ const countdown = computed(() => {
   const s = secondsLeft.value;
   return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 });
+
+// Partage du résultat du jour : le message natif sur mobile, sinon copie dans le presse-papiers
+const shareState = ref('idle'); // 'idle' | 'copied' | 'error'
+const shareLabel = computed(() => ({
+  idle: 'Partager mon résultat',
+  copied: 'Résultat copié !',
+  error: 'Copie impossible'
+})[shareState.value]);
+
+let shareTimer;
+const shareResult = async () => {
+  const text = buildShareText(
+    store.dailyDate,
+    store.target,
+    store.guesses,
+    store.gameStatus === 'won',
+    store.maxAttempts,
+    streak.value.current
+  );
+
+  try {
+    if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
+      await navigator.share({ text });
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    shareState.value = 'copied';
+  } catch (error) {
+    // Le joueur a fermé le panneau de partage : rien à signaler
+    if (error?.name === 'AbortError') return;
+    shareState.value = 'error';
+  }
+  clearTimeout(shareTimer);
+  shareTimer = setTimeout(() => (shareState.value = 'idle'), 2500);
+};
 
 let timer;
 const tick = () => {
@@ -136,6 +210,7 @@ watch(() => props.mode, () => {
 onUnmounted(() => {
   window.removeEventListener('keydown', store.handleKeydown);
   clearInterval(timer);
+  clearTimeout(shareTimer);
 });
 </script>
 
@@ -281,6 +356,18 @@ onUnmounted(() => {
   box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
 }
 
+.btn-restart.share {
+  background: linear-gradient(145deg, rgba(255, 189, 0, 0.25), rgba(245, 158, 11, 0.45));
+  color: white;
+  border-color: #ffbd00;
+}
+
+.btn-restart.share:hover {
+  background: linear-gradient(145deg, rgba(255, 189, 0, 0.4), rgba(245, 158, 11, 0.6));
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(255, 189, 0, 0.3);
+}
+
 .btn-restart.secondary {
   background: rgba(21, 101, 192, 0.3);
   color: white;
@@ -334,6 +421,30 @@ main {
 .site-title {
   margin: 0;
   font-size: inherit;
+}
+
+/* Texte de présentation sous le jeu */
+.about {
+  max-width: 640px;
+  margin: 1.5rem auto 2rem;
+  padding: 0 0.5rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.about h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.2rem;
+  color: #ffbd00;
+}
+
+.about p {
+  margin: 0.6rem 0;
+}
+
+.about a {
+  color: #ffbd00;
 }
 
 .logo-area {
