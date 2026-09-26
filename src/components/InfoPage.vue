@@ -1,6 +1,11 @@
 <template>
   <div class="info-wrapper">
     <div class="info-container">
+      <nav class="breadcrumb" aria-label="Fil d'Ariane">
+        <router-link to="/">Accueil</router-link>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">{{ title }}</span>
+      </nav>
       <div class="info-header">
         <h1><Icon :icon="icon" width="32" height="32" /> {{ title }}</h1>
       </div>
@@ -13,8 +18,11 @@
 
 <script setup>
 import { Icon } from '@iconify/vue';
+import { useRoute } from 'vue-router';
+import { SITE } from '../config/site.js';
+import { useJsonLd } from '../composables/useJsonLd.js';
 
-defineProps({
+const props = defineProps({
   title: {
     type: String,
     required: true
@@ -24,6 +32,16 @@ defineProps({
     default: 'mdi:information-outline'
   }
 });
+
+// Fil d'Ariane balisé : mêmes libellés que ceux affichés dans le <nav> ci-dessus
+const route = useRoute();
+useJsonLd(() => ({
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${SITE.url}/` },
+    { '@type': 'ListItem', position: 2, name: props.title, item: `${SITE.url}${route.path}` }
+  ]
+}));
 </script>
 
 <style scoped>
@@ -37,6 +55,24 @@ defineProps({
   max-width: 800px;
   margin: 0 auto;
   animation: fadeIn 0.5s ease;
+}
+
+.breadcrumb {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.breadcrumb a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.breadcrumb a:hover {
+  color: white;
 }
 
 .info-header h1 {

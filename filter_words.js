@@ -100,7 +100,7 @@ const motsFiltres = mots.filter(mot => devraitEtreGarde(mot));
 motsFiltres.sort();
 
 // Écrire le résultat
-fs.writeFileSync('public/mots_filtres.txt', motsFiltres.join('\n'), 'utf-8');
+fs.writeFileSync('data/mots_filtres.txt', motsFiltres.join('\n'), 'utf-8');
 
 console.log(`Nombre de mots d'origine : ${mots.length}`);
 console.log(`Nombre de mots après filtrage : ${motsFiltres.length}`);

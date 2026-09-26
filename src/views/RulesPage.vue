@@ -194,39 +194,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import InfoPage from '../components/InfoPage.vue';
 import AdBanner from '../components/AdBanner.vue';
 import { AD_SLOTS } from '../config/ads.js';
+import { useJsonLd } from '../composables/useJsonLd.js';
 
 // Balisage FAQPage (schema.org) construit depuis le texte affiché : il ne peut pas
 // diverger de la page, et une question ajoutée dans la section est prise en compte seule.
 const faqSection = ref(null);
-let faqJsonLd = null;
 
 const visibleText = (el) => el.textContent.replace(/\s+/g, ' ').trim();
 
-onMounted(() => {
-  const mainEntity = [...faqSection.value.querySelectorAll('h3')]
+useJsonLd(() => ({
+  '@type': 'FAQPage',
+  mainEntity: [...faqSection.value.querySelectorAll('h3')]
     .filter((question) => question.nextElementSibling)
     .map((question) => ({
       '@type': 'Question',
       name: visibleText(question),
       acceptedAnswer: { '@type': 'Answer', text: visibleText(question.nextElementSibling) }
-    }));
-
-  faqJsonLd = document.createElement('script');
-  faqJsonLd.type = 'application/ld+json';
-  faqJsonLd.textContent = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity
-  });
-  document.head.appendChild(faqJsonLd);
-});
-
-// Le balisage ne doit exister que sur la page dont il décrit le contenu
-onUnmounted(() => faqJsonLd?.remove());
+    }))
+}));
 
 // Construit une ligne d'exemple à partir d'un mot et de ses statuts, lettre par lettre
 const buildRow = (word, statuses) =>

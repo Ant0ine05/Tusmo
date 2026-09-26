@@ -61,7 +61,7 @@ for mot in mots:
 mots_filtres.sort()
 
 # Écrire le résultat
-with open('public/mots_filtres.txt', 'w', encoding='utf-8') as f:
+with open('data/mots_filtres.txt', 'w', encoding='utf-8') as f:
     for mot in mots_filtres:
         f.write(mot + '\n')
 

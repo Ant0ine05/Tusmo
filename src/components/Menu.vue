@@ -8,7 +8,7 @@
     <nav aria-label="Menu principal">
       <div class="button_grid">
         <div class="button-wrapper">
-          <router-link to="/game" class="menu-button">Start Game</router-link>
+          <router-link to="/game" class="menu-button">Jouer</router-link>
         </div>
         <div class="button-wrapper">
           <router-link to="/stats" class="menu-button">Stats</router-link>
