@@ -26,7 +26,11 @@ const routes = [
     path: '/regles',
     name: 'rules',
     component: () => import('../views/RulesPage.vue'),
-    meta: { title: 'Règles du jeu - Tomus' }
+    meta: {
+      title: 'Règles du jeu Motus/Wordle - Comment jouer à Tomus',
+      description:
+        'Découvrez les règles de Tomus : devinez le mot mystère en 6 essais grâce aux indices de couleur. Guide complet pour bien jouer, même pour les débutants.'
+    }
   },
   {
     path: '/confidentialite',
@@ -51,10 +55,17 @@ const router = createRouter({
   }
 })
 
-// Titre propre à chaque page, avec le titre de index.html en valeur par défaut
+// Titre et meta description propres à chaque page, avec ceux de index.html en valeur par défaut
 const defaultTitle = document.title
+const descriptionTag = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+const defaultDescription = descriptionTag?.content ?? ''
+
 router.afterEach((to) => {
   document.title = (to.meta.title as string | undefined) ?? defaultTitle
+  descriptionTag?.setAttribute(
+    'content',
+    (to.meta.description as string | undefined) ?? defaultDescription
+  )
 })
 
 export default router
