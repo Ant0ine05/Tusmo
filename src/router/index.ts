@@ -11,7 +11,12 @@ const routes = [
   {
     path: '/game',
     name: 'game',
-    component: () => import('../views/GamePage.vue')
+    component: () => import('../views/GamePage.vue'),
+    meta: {
+      title: 'Jouer à Tomus - Motus/Wordle gratuit en ligne',
+      description:
+        'Jouez gratuitement à Tomus, sans inscription : trouvez le mot mystère en 6 essais grâce aux indices de couleur. Enchaînez les parties dans votre navigateur.'
+    }
   },
   {
     path: '/stats',

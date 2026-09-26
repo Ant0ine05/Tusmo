@@ -3,7 +3,7 @@
     <!-- Le logo est le titre visuel de la page ; le texte masqué donne son sujet au h1 -->
     <h1 class="site-title">
       <Logo size="small" class="logo" aria-hidden="true" />
-      <span class="sr-only">Tomus : devinez le mot mystère du jour en 6 essais</span>
+      <span class="sr-only">Tomus : devinez le mot mystère en 6 essais</span>
     </h1>
     <br>
     <!-- Modal Victoire/Défaite -->

@@ -158,6 +158,9 @@
 
     <h2>Questions fréquentes</h2>
 
+    <!-- Chaque h3 suivi de son p devient une question du balisage FAQPage (voir le script).
+         Le h2 reste hors de la section : InfoPage annule la marge d'un h2 premier enfant. -->
+    <section ref="faqSection">
     <h3>Le mot change-t-il chaque jour ?</h3>
     <p>
       Non. Un nouveau mot est tiré au hasard à chaque nouvelle partie, vous pouvez donc enchaîner autant de
@@ -182,6 +185,7 @@
       Il n'a probablement pas la bonne longueur ou il ne figure pas dans le dictionnaire du jeu. Vérifiez
       l'orthographe (sans accents) et essayez un autre mot.
     </p>
+    </section>
 
     <p>
       Prêt à jouer ? <router-link to="/game">Lancer une partie</router-link>
@@ -190,9 +194,39 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
 import InfoPage from '../components/InfoPage.vue';
 import AdBanner from '../components/AdBanner.vue';
 import { AD_SLOTS } from '../config/ads.js';
+
+// Balisage FAQPage (schema.org) construit depuis le texte affiché : il ne peut pas
+// diverger de la page, et une question ajoutée dans la section est prise en compte seule.
+const faqSection = ref(null);
+let faqJsonLd = null;
+
+const visibleText = (el) => el.textContent.replace(/\s+/g, ' ').trim();
+
+onMounted(() => {
+  const mainEntity = [...faqSection.value.querySelectorAll('h3')]
+    .filter((question) => question.nextElementSibling)
+    .map((question) => ({
+      '@type': 'Question',
+      name: visibleText(question),
+      acceptedAnswer: { '@type': 'Answer', text: visibleText(question.nextElementSibling) }
+    }));
+
+  faqJsonLd = document.createElement('script');
+  faqJsonLd.type = 'application/ld+json';
+  faqJsonLd.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity
+  });
+  document.head.appendChild(faqJsonLd);
+});
+
+// Le balisage ne doit exister que sur la page dont il décrit le contenu
+onUnmounted(() => faqJsonLd?.remove());
 
 // Construit une ligne d'exemple à partir d'un mot et de ses statuts, lettre par lettre
 const buildRow = (word, statuses) =>
