@@ -1,7 +1,11 @@
 <template>
   <main>
-    <Logo size="small" class="logo" />
-    <br> 
+    <!-- Le logo est le titre visuel de la page ; le texte masqué donne son sujet au h1 -->
+    <h1 class="site-title">
+      <Logo size="small" class="logo" aria-hidden="true" />
+      <span class="sr-only">Tomus : devinez le mot mystère du jour en 6 essais</span>
+    </h1>
+    <br>
     <!-- Modal Victoire/Défaite -->
     <div v-if="store.gameStatus !== 'playing'" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
@@ -226,14 +230,10 @@ main {
   min-height: calc(100vh - 100px);
 }
 
-h1 {
-  color: white;
-  font-family: 'Montserrat', Arial, sans-serif;
-  font-weight: 900;
-  letter-spacing: 8px;
-  font-size: 3rem;
-  margin-bottom: 2rem;
-  text-shadow: 0 4px 20px rgba(21, 101, 192, 0.5);
+/* Le h1 ne contient que le logo : aucune marge ni taille de police en plus */
+.site-title {
+  margin: 0;
+  font-size: inherit;
 }
 
 .logo-area {

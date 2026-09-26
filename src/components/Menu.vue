@@ -1,32 +1,33 @@
 <template>
   <div class="menu">
-    <Logo size="small" class="logo" />    
-    <div>
+    <!-- Le logo est le titre visuel de la page ; le texte masqué donne son sujet au h1 -->
+    <h1 class="site-title">
+      <Logo size="small" class="logo" aria-hidden="true" />
+      <span class="sr-only">Tomus, le jeu de mots gratuit en ligne inspiré de Motus et Wordle</span>
+    </h1>
+    <nav aria-label="Menu principal">
       <div class="button_grid">
         <div class="button-wrapper">
-          <input type="button" value="Start Game" @click="router.push('/game')">
+          <router-link to="/game" class="menu-button">Start Game</router-link>
         </div>
         <div class="button-wrapper">
-          <input type="button" value="Stats" @click="router.push('/stats')">
+          <router-link to="/stats" class="menu-button">Stats</router-link>
           <span class="new-badge">NEW</span>
         </div>
         <div class="button-wrapper">
-          <input type="button" value="Options" @click="router.push('/options')">
+          <router-link to="/options" class="menu-button">Options</router-link>
           <span class="new-badge">NEW</span>
         </div>
         <div class="button-wrapper">
-          <input type="button" value="Règles" @click="router.push('/regles')">
+          <router-link to="/regles" class="menu-button">Règles</router-link>
         </div>
       </div>
-    </div>
+    </nav>
   </div>
 </template>
 <script setup>
 import { onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import Logo from './Logo.vue';
-
-const router = useRouter();
 
 onMounted(() => {
   // console.log('HelloWorld component mounted');
@@ -43,6 +44,12 @@ onMounted(() => {
   .menu {
     padding-top: 1rem;
   }
+}
+
+/* Le h1 ne contient que le logo : aucune marge ni taille de police en plus */
+.site-title {
+  margin: 0;
+  font-size: inherit;
 }
 
 .hello-world {
@@ -62,8 +69,11 @@ onMounted(() => {
   width: 100%;
 }
 
-.button-wrapper input[type="button"] {
+.button-wrapper .menu-button {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
+  text-decoration: none;
 }
 
 .new-badge {
@@ -95,7 +105,7 @@ onMounted(() => {
   }
 }
 
-input[type="button"] {
+.menu-button {
   padding: 1rem 2rem;
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -116,7 +126,7 @@ input[type="button"] {
 }
 
 /* Effet de brillance au survol */
-input[type="button"]::before {
+.menu-button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -127,7 +137,7 @@ input[type="button"]::before {
   transition: left 0.5s;
 }
 
-input[type="button"]:hover {
+.menu-button:hover {
   background: rgba(21, 101, 192, 0.4);
   border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px) scale(1.02);
@@ -136,11 +146,11 @@ input[type="button"]:hover {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-input[type="button"]:hover::before {
+.menu-button:hover::before {
   left: 100%;
 }
 
-input[type="button"]:active {
+.menu-button:active {
   transform: translateY(0) scale(0.98);
   box-shadow: 
     0 4px 16px rgba(21, 101, 192, 0.3),

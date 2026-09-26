@@ -123,6 +123,19 @@ html {
     background: transparent;
 }
 
+/* Texte lu par les lecteurs d'écran et les moteurs de recherche, invisible à l'écran */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Début et Fin de l'animation */
 .fade-enter-active,
 .fade-leave-active {
@@ -135,3 +148,4 @@ html {
   opacity: 0;
 }
 </style>
+Sa

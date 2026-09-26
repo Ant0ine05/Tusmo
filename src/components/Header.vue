@@ -1,7 +1,9 @@
 <template>
     <div>
         <div>
-            <Icon icon="line-md:home" width="24" height="24" class="button" :class="{ 'is-hidden': isHome }" :aria-hidden="isHome" @click="router.replace('/')" />
+            <router-link to="/" replace class="button" :class="{ 'is-hidden': isHome }" aria-label="Retour à l'accueil" :aria-hidden="isHome">
+                <Icon icon="line-md:home" width="24" height="24" />
+            </router-link>
         </div>
     </div>
 </template>
@@ -58,6 +60,10 @@ watch(() => store.settings.soundEnabled, (enabled) => {
         color: inherit;
     }
     .button {
+        /* Le bouton est un lien : on centre l'icône comme le faisait le svg seul */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         padding: 0.75rem 1rem;
         border: 2px solid rgba(255, 255, 255, 0.1);
         border-radius: 10px;
