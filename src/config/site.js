@@ -9,7 +9,7 @@ export const SITE = {
   editorName: 'Tomus',
   contactEmail: 'tomus.contact@gmail.com',
 
-  hostName: 'OVH SAS',
-  hostAddress: '2 rue Kellermann, 59100 Roubaix, France',
-  hostContact: 'https://www.ovhcloud.com',
+  hostName: 'Cloudflare, Inc.',
+  hostAddress: '101 Townsend Street, San Francisco, CA 94107, États-Unis',
+  hostContact: 'https://www.cloudflare.com',
 };
