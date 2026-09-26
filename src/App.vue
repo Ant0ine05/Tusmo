@@ -27,6 +27,14 @@ watch(() => route.path, (newPath) => {
 });
 </script>
 <style>
+/* Réserve la place de la barre de défilement : sans ça, tout le contenu se décale
+   sur le côté quand une page est assez longue pour en afficher une.
+   Le fond sombre évite une bande blanche quand la barre n'est pas affichée. */
+html {
+  scrollbar-gutter: stable;
+  background-color: var(--color-background);
+}
+
 :root {
   /* --- COULEURS DU JEU (LOGIQUE) --- */
   

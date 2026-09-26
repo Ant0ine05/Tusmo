@@ -1,5 +1,5 @@
 <template>
-  <div style="margin-top: 68px;">
+  <div class="menu">
     <Logo size="small" class="logo" />    
     <div>
       <div class="button_grid">
@@ -33,6 +33,18 @@ onMounted(() => {
 });
 </script>
 <style scoped>
+/* Même décalage que le <main> de la page de jeu : le logo reste à la même place
+   quand on passe de l'accueil au jeu */
+.menu {
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .menu {
+    padding-top: 1rem;
+  }
+}
+
 .hello-world {
   text-align: center;
   margin-top: 2rem;

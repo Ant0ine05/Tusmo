@@ -7,7 +7,7 @@ export const SITE = {
   // Éditeur non professionnel : seul le pseudo est public (art. 6-III-2 de la LCEN),
   // l'identité réelle est communiquée uniquement à l'hébergeur.
   editorName: 'Tomus',
-  contactEmail: 'tomus.contact@gmail.com',
+  contactEmail: 'tomusgame@proton.me',
 
   hostName: 'Cloudflare, Inc.',
   hostAddress: '101 Townsend Street, San Francisco, CA 94107, États-Unis',

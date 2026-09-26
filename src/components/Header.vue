@@ -1,17 +1,18 @@
 <template>
     <div>
         <div>
-            <Icon v-if="router.currentRoute.value.path !== '/'" icon="line-md:home" width="24" height="24" class="button" @click="router.replace('/')" />
+            <Icon icon="line-md:home" width="24" height="24" class="button" :class="{ 'is-hidden': isHome }" :aria-hidden="isHome" @click="router.replace('/')" />
         </div>
     </div>
 </template>
 <script setup>  
-import { onMounted, watch } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
 import { store } from '../store/store.ts';
 
 const router = useRouter();
+const isHome = computed(() => router.currentRoute.value.path === '/');
 const maMusique = new Audio('/sounds/Horizon_2.mp3');
 maMusique.loop = true;
 
@@ -74,6 +75,14 @@ watch(() => store.settings.soundEnabled, (enabled) => {
         box-shadow: 
             0 4px 16px rgba(21, 101, 192, 0.2),
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    /* Sur l'accueil le bouton reste dans le flux, invisible : la hauteur du header
+       ne change pas d'une page à l'autre, donc le contenu ne saute plus */
+    .button.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
     }
 
     /* Effet de brillance au survol */
