@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Menu from '../components/Menu.vue'
+import { SITE } from '../config/site.js'
 
 const routes = [
   {
@@ -55,16 +56,24 @@ const router = createRouter({
   }
 })
 
-// Titre et meta description propres à chaque page, avec ceux de index.html en valeur par défaut
+// Titre, meta description et URL canonique propres à chaque page,
+// avec ceux de index.html en valeur par défaut
 const defaultTitle = document.title
 const descriptionTag = document.querySelector<HTMLMetaElement>('meta[name="description"]')
 const defaultDescription = descriptionTag?.content ?? ''
+const canonicalTag = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+const defaultCanonical = canonicalTag?.href ?? `${SITE.url}/`
 
 router.afterEach((to) => {
   document.title = (to.meta.title as string | undefined) ?? defaultTitle
   descriptionTag?.setAttribute(
     'content',
     (to.meta.description as string | undefined) ?? defaultDescription
+  )
+  // Sans query ni hash ; une URL qui ne correspond à aucune route retombe sur l'accueil
+  canonicalTag?.setAttribute(
+    'href',
+    to.matched.length ? `${SITE.url}${to.path}` : defaultCanonical
   )
 })
 
